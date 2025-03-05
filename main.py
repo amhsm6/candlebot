@@ -1,17 +1,19 @@
 import board
-import enum
+from enum import Enum
 import time
 
 from camera import Camera
 from driver import Driver
 from eyes import Eyes
+from turbine import Turbine
 from wheels import Wheels
 
 i2c = board.I2C()
-camera = Camera()
+#camera = Camera()
 eyes = Eyes(i2c)
 wheels = Wheels()
 driver = Driver(wheels, eyes)
+turbine = Turbine()
 
 class Edge(Enum):
     STRAIGHT = 0
@@ -102,8 +104,9 @@ def find_candle():
         pos = newpos
 
 try:
-    find_candle()
-    #while True:
+    driver.reset()
+    while True:
+        driver.iter()
 
         #im = camera.read()
         #for row in range(24):
@@ -117,7 +120,8 @@ try:
 except KeyboardInterrupt:
     print()
 
-camera.deinit()
+#camera.deinit()
 eyes.deinit()
 wheels.deinit()
 driver.deinit()
+turbine.deinit()

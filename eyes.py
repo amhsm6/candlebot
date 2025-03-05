@@ -5,7 +5,8 @@ import time
 
 class Eyes():
     xshuts = [
-        (DigitalInOut(board.D14), 0x29)
+        (DigitalInOut(board.D27), 0x28),
+        (DigitalInOut(board.D17), 0x29)
     ]
 
     def __init__(self, i2c):
