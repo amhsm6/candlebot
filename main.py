@@ -1,48 +1,52 @@
-import board
-from enum import Enum
+#import board
 import time
 
-from camera import Camera
-from driver import Driver
-from eyes import Eyes
-from turbine import Turbine
-from wheels import Wheels
+#from camera import Camera
+#from driver import Driver
+#from eyes import Eyes
+#from turbine import Turbine
+#from wheels import Wheels
 
-i2c = board.I2C()
+#i2c = board.I2C()
 #camera = Camera()
-eyes = Eyes(i2c)
-wheels = Wheels()
-driver = Driver(wheels, eyes)
-turbine = Turbine()
+#eyes = Eyes(i2c)
+#wheels = Wheels()
+#driver = Driver(wheels, eyes)
+#turbine = Turbine()
 
 graph = {}
 nextpos = 0
 
 def can_go(i):
-    return eyes.see(i) > 300
+    return bool(int(input(f'CAN GO {i}? ')))
+#    return eyes.see(i) > 300
 
 # FIXME
 def turn_left():
+    print('TURN_LEFT')
     pass
 
 def turn_right():
+    print('TURN_RIGHT')
     pass
 
 def reverse():
+    print('REVERSE')
     pass
 
 def drive_edge():
-    driver.reset()
-    while True:
-        driver.iter()
+    print('DRIVE_EDGE')
+    #driver.reset()
+    #while True:
+        #driver.iter()
 
         # if detect_room():
         #    return kill_candle()
 
-        if not can_go(1) or can_go(0) or can_go(2):
-            driver.stop()
-            time.sleep(2)
-            break
+        #if not can_go(1) or can_go(0) or can_go(2):
+        #    driver.stop()
+        #    time.sleep(2)
+        #    break
 
 def revert(dir):
     return (180 + dir) % 360
@@ -89,13 +93,14 @@ def next_paths(dir):
 
 def find_candle(pos, dir):
     print(f'ENTER {pos} @ {dir}')
+    print(graph)
 
     next = next_paths(dir)
-    print(f'= NEXT: {next}')
+    print(f'NEXT: {next}')
 
     for newdir in next:
         newpos = update_graph(pos, newdir)
-        print(f'{pos} @ {dir} -> {newpos} @ {newdir}')
+        print(f'>=> {pos} @ {dir} -> {newpos} @ {newdir}')
 
         reldir = rel(dir, newdir)
         print(f'* EXEC {reldir}')
@@ -104,25 +109,39 @@ def find_candle(pos, dir):
         elif reldir == 90:
             turn_right()
 
-        wheels.go(50000, 50000)
-        time.sleep(2)
-        wheels.stop()
-        time.sleep(2)
+        #wheels.go(50000, 50000)
+        #time.sleep(2)
+        #wheels.stop()
+        #time.sleep(2)
 
         drive_edge()
-        find_candle(newpos, newdir)
 
-        print(f'! STUCK {newpos} @ {newdir}')
+        dir = find_candle(newpos, newdir)
+        print(f'! STUCK {newpos} @ {dir}')
 
-        dir = revert(dir)
+        targetdir = revert(newdir)
+        reldir = rel(dir, targetdir)
+        dir = targetdir
 
-        reverse()
+        print(f'? EXIT {targetdir}')
+        print(f'* EXEC {reldir}')
+
+        if reldir == -90:
+            turn_left()
+        elif reldir == 90:
+            turn_right()
+        elif reldir == 180:
+            reverse()
+
         drive_edge()
+
+    return dir
 
 try:
-    driver.reset()
-    while True:
-        driver.iter()
+    find_candle(0, 0)
+#    driver.reset()
+#    while True:
+#        driver.iter()
 
         #im = camera.read()
         #for row in range(24):
@@ -137,7 +156,7 @@ except KeyboardInterrupt:
     print()
 
 #camera.deinit()
-eyes.deinit()
-wheels.deinit()
-driver.deinit()
+#eyes.deinit()
+#wheels.deinit()
+#driver.deinit()
 turbine.deinit()
