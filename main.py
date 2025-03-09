@@ -15,37 +15,11 @@ wheels = Wheels()
 driver = Driver(wheels, eyes)
 turbine = Turbine()
 
-class Edge(Enum):
-    STRAIGHT = 0
-    LEFT = 1
-    RIGHT = 2
-
-    def invert(self):
-        if self == Edge.STRAIGHT:
-            return Edge.STRAIGHT
-        elif self == Edge.LEFT:
-            return Edge.RIGHT
-        elif self == Edge.RIGHT:
-            return Edge.LEFT
-        else:
-            raise Exception("Impossible Edge variant: {}")
-
 graph = {}
+nextpos = 0
 
-def drive_edge():
-    driver.reset()
-    while True:
-        driver.iter()
-
-        # FIXME: move forward
-        if eyes.see(0) > 500 and eyes.see(1) > 500:
-            return 0
-
-        if eyes.see(1) > 500:
-            return 1
-
-        if eyes.see(0) > 500:
-            return -1
+def can_go(i):
+    return eyes.see(i) > 300
 
 # FIXME
 def turn_left():
@@ -54,54 +28,96 @@ def turn_left():
 def turn_right():
     pass
 
-def find_candle():
-    graph[0] = { 1: Edge.STRAIGHT }
-    graph[1] = { 0: Edge.STRAIGHT }
-    pos = 1
+def reverse():
+    pass
 
-    free = drive_edge()
+def drive_edge():
+    driver.reset()
     while True:
-        print(f'ENTER {pos}')
+        driver.iter()
 
-        # TODO: check for candle
-        print(f'-> NO CANDLE')
+        # if detect_room():
+        #    return kill_candle()
 
-        print(f'CAN GO:')
+        if not can_go(1) or can_go(0) or can_go(2):
+            driver.stop()
+            time.sleep(2)
+            break
 
-        edge = None
-        if free == 1 or free == 0:
-            print(f'| Right')
-            turn_right()
-            edge = Edge.RIGHT
-        elif free == -1:
-            print(f'| Left')
+def revert(dir):
+    return (180 + dir) % 360
+
+def rel(dir, newdir):
+    reldir = (newdir - dir) % 360
+    if reldir == 270:
+        reldir = -90
+    return reldir
+
+def abs(dir, reldir):
+    return (dir + reldir) % 360
+
+def update_graph(pos, dir):
+    global nextpos
+    nextpos += 1
+
+    newpos = nextpos
+
+    if pos not in graph:
+        graph[pos] = { newpos: dir }
+    else:
+        graph[pos][newpos] = dir
+
+    revdir = revert(dir)
+    if newpos not in graph:
+        graph[newpos] = { pos: revdir }
+    else:
+        graph[newpos][pos] = revdir
+
+    return newpos
+
+def next_paths(dir):
+    next = []
+
+    for i in range(3):
+        if not can_go(i):
+            continue
+
+        reldir = (i - 1) * 90
+        next.append(abs(dir, reldir))
+    
+    return next
+
+def find_candle(pos, dir):
+    print(f'ENTER {pos} @ {dir}')
+
+    next = next_paths(dir)
+    print(f'= NEXT: {next}')
+
+    for newdir in next:
+        newpos = update_graph(pos, newdir)
+        print(f'{pos} @ {dir} -> {newpos} @ {newdir}')
+
+        reldir = rel(dir, newdir)
+        print(f'* EXEC {reldir}')
+        if reldir == -90:
             turn_left()
-            edge = Edge.LEFT
-        else:
-            print(f'| Straight')
-            edge = Edge.STRAIGHT # FIXME
-            raise Exception(f'Unexpected value for free: {free}')
+        elif reldir == 90:
+            turn_right()
 
-        print(f'=== CHOOSE {edge}')
-        print(f'*** EXEC')
+        wheels.go(50000, 50000)
+        time.sleep(2)
+        wheels.stop()
+        time.sleep(2)
 
-        free = drive_edge()
-        
-        newpos = pos + 1
+        drive_edge()
+        find_candle(newpos, newdir)
 
-        if pos in graph:
-            graph[pos][newpos] = edge
-        else:
-            graph[pos] = { newpos: edge }
+        print(f'! STUCK {newpos} @ {newdir}')
 
-        if newpos in graph:
-            graph[newpos][pos] = edge.invert()
-        else:
-            graph[newpos] = { pos: edge.invert() }
+        dir = revert(dir)
 
-        print(f'??? GRAPH: {graph}')
-
-        pos = newpos
+        reverse()
+        drive_edge()
 
 try:
     driver.reset()

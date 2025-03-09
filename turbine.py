@@ -5,10 +5,11 @@ class Turbine():
     def __init__(self):
         print('INIT turbine')
         self.pwm = pwmio.PWMOut(board.D15, frequency=50)
+        self.off()
 
     def deinit(self):
         print('DEINIT turbine')
-        self.set(0)
+        self.off()
         self.pwm.deinit()
 
     def set(self, x):
