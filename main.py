@@ -4,15 +4,15 @@ import time
 #from camera import Camera
 #from driver import Driver
 #from eyes import Eyes
-#from turbine import Turbine
-#from wheels import Wheels
+from turbine import Turbine
+from wheels import Wheels
 
 #i2c = board.I2C()
 #camera = Camera()
 #eyes = Eyes(i2c)
-#wheels = Wheels()
+wheels = Wheels()
 #driver = Driver(wheels, eyes)
-#turbine = Turbine()
+turbine = Turbine()
 
 graph = {}
 nextpos = 0
@@ -138,7 +138,10 @@ def find_candle(pos, dir):
     return dir
 
 try:
-    find_candle(0, 0)
+    time.sleep(3)
+    turbine.set(3800)
+    time.sleep(10)
+#    find_candle(0, 0)
 #    driver.reset()
 #    while True:
 #        driver.iter()
@@ -157,6 +160,6 @@ except KeyboardInterrupt:
 
 #camera.deinit()
 #eyes.deinit()
-#wheels.deinit()
+wheels.deinit()
 #driver.deinit()
 turbine.deinit()

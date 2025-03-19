@@ -7,12 +7,12 @@ class Wheels():
     def __init__(self):
         print('INIT wheels')
 
-        self.ena = pwmio.PWMOut(board.D13)
+        self.ena = pwmio.PWMOut(board.D26)
         self.in1 = digitalio.DigitalInOut(board.D19)
-        self.in2 = digitalio.DigitalInOut(board.D26)
-        self.in3 = digitalio.DigitalInOut(board.D16)
+        self.in2 = digitalio.DigitalInOut(board.D13)
+        self.in3 = digitalio.DigitalInOut(board.D21)
         self.in4 = digitalio.DigitalInOut(board.D20)
-        self.enb = pwmio.PWMOut(board.D12)
+        self.enb = pwmio.PWMOut(board.D16)
 
         self.in1.switch_to_output(value=False)
         self.in2.switch_to_output(value=False)
@@ -38,8 +38,8 @@ class Wheels():
         self.in1.value = dirl < 0
         self.in2.value = dirl > 0
 
-        self.in3.value = dirr > 0
-        self.in4.value = dirr < 0
+        self.in3.value = dirr < 0
+        self.in4.value = dirr > 0
 
         vl = min(abs(vl), 65535)
         vr = min(abs(vr), 65535)

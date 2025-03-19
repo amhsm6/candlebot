@@ -18,6 +18,6 @@ class Camera:
         frame = np.array(frame, dtype=np.float32)
 
         im = np.reshape(frame, (24, 32))
-        im = cv.flip(im, 1)
+        im = cv.flip(im, -1)
 
         return im
