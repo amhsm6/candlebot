@@ -139,7 +139,7 @@ def find_candle(pos, dir):
 
 try:
     time.sleep(3)
-    turbine.set(3800)
+    turbine.set(4500)
     time.sleep(10)
 #    find_candle(0, 0)
 #    driver.reset()
