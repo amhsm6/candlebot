@@ -1,10 +1,12 @@
 import board
 import pwmio
+import config
+import time
 
 class Turbine():
     def __init__(self):
         print('INIT turbine')
-        self.pwm = pwmio.PWMOut(board.D4, frequency=50)
+        self.pwm = pwmio.PWMOut(config.TURBINE_PIN, frequency=50)
         self.off()
 
     def deinit(self):
@@ -16,7 +18,7 @@ class Turbine():
         self.pwm.duty_cycle = x
 
     def off(self):
-        self.set(3000)
+        self.set(config.TURBINE_OFF)
 
     def on(self):
-        self.set(8000)
+        self.set(config.TURBINE_ON)

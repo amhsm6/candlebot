@@ -2,17 +2,18 @@ import board
 import digitalio
 import pwmio
 import time
+import config
 
 class Wheels():
     def __init__(self):
         print('INIT wheels')
 
-        self.ena = pwmio.PWMOut(board.D26)
-        self.in1 = digitalio.DigitalInOut(board.D19)
-        self.in2 = digitalio.DigitalInOut(board.D13)
-        self.in3 = digitalio.DigitalInOut(board.D21)
-        self.in4 = digitalio.DigitalInOut(board.D20)
-        self.enb = pwmio.PWMOut(board.D16)
+        self.ena = pwmio.PWMOut(config.WHEELS_ENA)
+        self.in1 = digitalio.DigitalInOut(config.WHEELS_IN1)
+        self.in2 = digitalio.DigitalInOut(config.WHEELS_IN2)
+        self.in3 = digitalio.DigitalInOut(config.WHEELS_IN3)
+        self.in4 = digitalio.DigitalInOut(config.WHEELS_IN4)
+        self.enb = pwmio.PWMOut(config.WHEELS_ENB)
 
         self.in1.switch_to_output(value=False)
         self.in2.switch_to_output(value=False)

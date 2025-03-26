@@ -1,18 +1,24 @@
-#import board
+import board
 import time
+import config
+import RPi.GPIO as GPIO
 
 #from camera import Camera
 #from driver import Driver
 #from eyes import Eyes
 from turbine import Turbine
 from wheels import Wheels
+from encoder import Encoder
 
-#i2c = board.I2C()
+i2c = board.I2C()
+GPIO.setmode(GPIO.BCM)
+
 #camera = Camera()
 #eyes = Eyes(i2c)
 wheels = Wheels()
 #driver = Driver(wheels, eyes)
 turbine = Turbine()
+encoder = Encoder(config.ENCODER_PIN1, config.ENCODER_PIN2)
 
 graph = {}
 nextpos = 0
@@ -137,10 +143,33 @@ def find_candle(pos, dir):
 
     return dir
 
+print('====================== START ======================')
+
 try:
-    time.sleep(3)
-    turbine.set(4500)
-    time.sleep(10)
+#    turbine.set(4000)
+#    time.sleep(10)
+    wheels.go(1000, 60000)
+    while True:
+        print(encoder.getValue())
+        time.sleep(1)
+#        lsb = GPIO.input(Encoder.FWD)
+#        msb = GPIO.input(Encoder.REV)
+#
+#        encoded = (msb << 1) | lsb
+#        sum = (self.last_encoded << 2) | encoded;
+#
+#        if sum == 0b1101 or sum == 0b0100 or sum == 0b0010 or sum == 0b1011:
+#            self.value -= 1
+#
+#        if sum == 0b1110 or sum == 0b0111 or sum == 0b0001 or sum == 0b1000:
+#            self.value += 1
+#
+#        self.last_encoded = encoded
+#        pass
+#        print(encoder.value)
+    #time.sleep(3)
+    #turbine.set(4500)
+    #time.sleep(10)
 #    find_candle(0, 0)
 #    driver.reset()
 #    while True:
@@ -158,8 +187,11 @@ try:
 except KeyboardInterrupt:
     print()
 
+print('====================== END ======================')
+
 #camera.deinit()
 #eyes.deinit()
 wheels.deinit()
 #driver.deinit()
 turbine.deinit()
+encoder.deinit()

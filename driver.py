@@ -1,14 +1,7 @@
 import time
+import config
 
 class Driver:
-    KP = 120
-    KI = 0
-    KAW = 0
-    KD = 0
-    SPEED = 30000
-    DT = 0.01
-    MAX_CONTROL = 30000
-
     def __init__(self, wheels, eyes):
         print('INIT driver')
         self.wheels = wheels
@@ -27,22 +20,20 @@ class Driver:
     def iter(self):
         err = self.eyes.see(1) - self.eyes.see(0)
 
-        cp = err * Driver.KP
+        cp = err * config.DRIVER_KP
 
-        self.integral += err * Driver.DT * Driver.KI - (self.control_prev - self.limcontrol_prev) * Driver.KAW
+        self.integral += err * config.DRIVER_DT * config.DRIVER_KI - (self.control_prev - self.limcontrol_prev) * config.DRIVER_KAW
 
-        cd = (err - self.err_prev) / Driver.DT * Driver.KD
+        cd = (err - self.err_prev) / config.DRIVER_DT * config.DRIVER_KD
 
         control = cp + self.integral + cd
         self.control_prev = control
 
-        control = min(control, Driver.MAX_CONTROL)
-        control = max(control, -Driver.MAX_CONTROL)
+        control = min(control, config.DRIVER_MAX_CONTROL)
+        control = max(control, -config.DRIVER_MAX_CONTROL)
         self.limcontrol_prev = control
 
-        print(self.eyes.see(), control, Driver.SPEED + control, Driver.SPEED - control)
+        self.wheels.go(config.DRIVER_SPEED + control, config.DRIVER_SPEED - control)
 
-        self.wheels.go(Driver.SPEED + control, Driver.SPEED - control)
-
-        time.sleep(Driver.DT)
+        time.sleep(config.DRIVER_DT)
         self.err_prev = err

@@ -2,18 +2,22 @@ import board
 from digitalio import DigitalInOut
 from adafruit_vl53l0x import VL53L0X
 import time
+import config
 
 class Eyes():
-    xshuts = [
-        (DigitalInOut(board.D27), 0x28),
-        (DigitalInOut(board.D17), 0x29)
-    ]
-
     def __init__(self, i2c):
         print('INIT eyes')
 
-        for xshut, _ in Eyes.xshuts:
+        def init_xshut(x):
+            pin = x[0]
+            addr = x[1]
+
+            xshut = DigitalInOut(pin)
             xshut.switch_to_output(value=False)
+
+            return (xshut, addr)
+
+        self.xshuts = map(init_xshut, config.EYES_XSHUTS)
 
         self.eyes = []
         for xshut, addr in self.xshuts:
