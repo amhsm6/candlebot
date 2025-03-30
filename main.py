@@ -1,27 +1,37 @@
-import board
+import heapq
+#import board
 import time
-import config
-import RPi.GPIO as GPIO
+#import config
+#import RPi.GPIO as GPIO
 
 #from camera import Camera
 #from driver import Driver
 #from eyes import Eyes
-from turbine import Turbine
-from wheels import Wheels
-from encoder import Encoder
+#from turbine import Turbine
+#from wheels import Wheels
+#from encoder import Encoder
+#from line import Line
 
-i2c = board.I2C()
-GPIO.setmode(GPIO.BCM)
+#i2c = board.I2C()
+#GPIO.setmode(GPIO.BCM)
 
 #camera = Camera()
 #eyes = Eyes(i2c)
-wheels = Wheels()
+#wheels = Wheels()
 #driver = Driver(wheels, eyes)
-turbine = Turbine()
-encoder = Encoder(config.ENCODER_PIN1, config.ENCODER_PIN2)
+#turbine = Turbine()
+#encoder = Encoder(config.ENCODER_PIN1, config.ENCODER_PIN2)
+#line = Line()
 
 graph = {}
 nextpos = 0
+
+class GoHome(Exception):
+    def __init__(self, pos, dir):
+        super().__init__("")
+
+        self.pos = pos
+        self.dir = dir
 
 def can_go(i):
     return bool(int(input(f'CAN GO {i}? ')))
@@ -40,19 +50,26 @@ def reverse():
     print('REVERSE')
     pass
 
+def kill_candle():
+    pass
+
 def drive_edge():
     print('DRIVE_EDGE')
+    if int(input('KILL CANDLE????? ')) == 1:
+        return True
+    return False
     #driver.reset()
     #while True:
-        #driver.iter()
+    #    driver.iter()
 
-        # if detect_room():
-        #    return kill_candle()
+    #    if line.check_room():
+    #        kill_candle()
+    #        return True
 
-        #if not can_go(1) or can_go(0) or can_go(2):
-        #    driver.stop()
-        #    time.sleep(2)
-        #    break
+    #    if not can_go(1) or can_go(0) or can_go(2):
+    #        driver.stop()
+    #        time.sleep(2)
+    #        return False
 
 def revert(dir):
     return (180 + dir) % 360
@@ -120,7 +137,8 @@ def find_candle(pos, dir):
         #wheels.stop()
         #time.sleep(2)
 
-        drive_edge()
+        if drive_edge():
+            raise GoHome(pos, newdir)
 
         dir = find_candle(newpos, newdir)
         print(f'! STUCK {newpos} @ {dir}')
@@ -143,15 +161,64 @@ def find_candle(pos, dir):
 
     return dir
 
+def return_home(pos, dir):
+    print(graph)
+    target = 0
+
+    queue = [(0, pos)]
+    dist = {pos: 0}
+    par = {pos: None}
+
+    visited = set()
+    while len(queue):
+        (d, x) = heapq.heappop(queue)
+
+        if x == target:
+            break
+
+        print(f'VISIT {x} DIST {d}')
+
+        visited.add(x)
+
+        for y in graph[x]:
+            print(f' NEXT {y}')
+
+            d = d + 1
+            if y not in dist or d < dist[y]:
+                print(f' UPD {y} -> {d}: {graph[x][y]}')
+                dist[y] = d
+                par[y] = x
+
+            if y not in visited:
+                heapq.heappush(queue, (d, y))
+
+    path = []
+
+    curr = target
+    while curr is not None:
+        path.append(curr)
+        curr = par[curr]
+
+    path.reverse()
+    print(path)
+
 print('====================== START ======================')
 
 try:
+    graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
+    return_home(4, 270)
+
+    try:
+        find_candle(0, 0)
+    except GoHome as e:
+        return_home(e.pos, e.dir)
+
 #    turbine.set(4000)
 #    time.sleep(10)
-    wheels.go(1000, 60000)
-    while True:
-        print(encoder.getValue())
-        time.sleep(1)
+    #wheels.go(1000, 60000)
+    #while True:
+    #    print(encoder.getValue())
+    #    time.sleep(1)
 #        lsb = GPIO.input(Encoder.FWD)
 #        msb = GPIO.input(Encoder.REV)
 #
@@ -170,7 +237,7 @@ try:
     #time.sleep(3)
     #turbine.set(4500)
     #time.sleep(10)
-#    find_candle(0, 0)
+    
 #    driver.reset()
 #    while True:
 #        driver.iter()
