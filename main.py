@@ -1,26 +1,27 @@
 import heapq
 #import board
 import time
-#import config
-#import RPi.GPIO as GPIO
+import config
+import RPi.GPIO as GPIO
 
 #from camera import Camera
 #from driver import Driver
 #from eyes import Eyes
-#from turbine import Turbine
-#from wheels import Wheels
-#from encoder import Encoder
+from turbine import Turbine
+from wheels import Wheels
+from encoder import Encoder
 #from line import Line
 
 #i2c = board.I2C()
-#GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BCM)
 
 #camera = Camera()
 #eyes = Eyes(i2c)
-#wheels = Wheels()
+wheels = Wheels()
 #driver = Driver(wheels, eyes)
-#turbine = Turbine()
-#encoder = Encoder(config.ENCODER_PIN1, config.ENCODER_PIN2)
+turbine = Turbine()
+encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
+encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
 #line = Line()
 
 graph = {}
@@ -205,13 +206,21 @@ def return_home(pos, dir):
 print('====================== START ======================')
 
 try:
-    graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
-    return_home(4, 270)
+    wheels.go(20000, 20000)
+    enc = 0
+    while enc < 3000:
+        enc = (encoderl.getValue() + encoderr.getValue()) // 2
+        print(enc)
 
-    try:
-        find_candle(0, 0)
-    except GoHome as e:
-        return_home(e.pos, e.dir)
+    wheels.stop()
+
+    #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
+    #return_home(4, 270)
+
+    #try:
+    #    find_candle(0, 0)
+    #except GoHome as e:
+    #    return_home(e.pos, e.dir)
 
 #    turbine.set(4000)
 #    time.sleep(10)
