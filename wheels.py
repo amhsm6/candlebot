@@ -39,8 +39,8 @@ class Wheels():
         self.in1.value = dirl > 0
         self.in2.value = dirl < 0
 
-        self.in3.value = dirr > 0
-        self.in4.value = dirr < 0
+        self.in3.value = dirr < 0
+        self.in4.value = dirr > 0
 
         vl = min(abs(vl), 65535)
         vr = min(abs(vr), 65535)

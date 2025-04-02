@@ -2,38 +2,40 @@ import time
 import config
 
 class Driver:
-    def __init__(self, wheels, eyes):
+    def __init__(self, wheels):
         print('INIT driver')
         self.wheels = wheels
-        self.eyes = eyes
         self.reset()
 
     def deinit(self):
         print('DEINIT driver')
 
-    def reset(self):
+    def reset(self, preset=config.DRIVER_WALL_PARAMS, **kwargs):
         self.integral = 0
         self.control_prev = 0
         self.limcontrol_prev = 0
         self.err_prev = 0
 
-    def iter(self):
-        err = self.eyes.see(1) - self.eyes.see(0)
+        self.params = preset
+        for p in kwargs:
+            self.params[p] = kwargs[p]
 
-        cp = err * config.DRIVER_KP
+    def iter(self, err):
+        cp = err * self.params['kp']
 
-        self.integral += err * config.DRIVER_DT * config.DRIVER_KI - (self.control_prev - self.limcontrol_prev) * config.DRIVER_KAW
+        self.integral += err * self.params['dt'] * self.params['ki'] - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
 
-        cd = (err - self.err_prev) / config.DRIVER_DT * config.DRIVER_KD
+        cd = (err - self.err_prev) / self.params['dt'] * self.params['kd']
 
         control = cp + self.integral + cd
         self.control_prev = control
 
-        control = min(control, config.DRIVER_MAX_CONTROL)
-        control = max(control, -config.DRIVER_MAX_CONTROL)
+        control = min(control, self.params['max_control'])
+        control = max(control, -self.params['max_control'])
         self.limcontrol_prev = control
 
-        self.wheels.go(config.DRIVER_SPEED + control, config.DRIVER_SPEED - control)
+        print(control, self.params['speed'] + control, self.params['speed'] - control)
+        self.wheels.go(self.params['speed'] + control, self.params['speed'] - control)
 
-        time.sleep(config.DRIVER_DT)
+        time.sleep(self.params['dt'])
         self.err_prev = err

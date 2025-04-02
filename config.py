@@ -1,12 +1,24 @@
 import board
 
-DRIVER_KP = 120
-DRIVER_KI = 0
-DRIVER_KAW = 0
-DRIVER_KD = 0
-DRIVER_SPEED = 30000
-DRIVER_DT = 0.01
-DRIVER_MAX_CONTROL = 30000
+DRIVER_WALL_PARAMS = {
+    'kp': 120,
+    'ki': 0,
+    'kaw': 0,
+    'kd': 0,
+    'speed': 30000,
+    'dt': 0.01,
+    'max_control': 30000
+}
+
+DRIVER_CANDLE_PARAMS = {
+    'kp': 120,
+    'ki': 0,
+    'kaw': 0,
+    'kd': 0,
+    'speed': 5000,
+    'dt': 0.01,
+    'max_control': 10000
+}
 
 EYES_XSHUTS = [
     (board.D27, 0x28),

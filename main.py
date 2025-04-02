@@ -1,24 +1,24 @@
 import heapq
-#import board
+import board
 import time
 import config
 import RPi.GPIO as GPIO
 
-#from camera import Camera
-#from driver import Driver
+from camera import Camera
+from driver import Driver
 #from eyes import Eyes
 from turbine import Turbine
 from wheels import Wheels
 from encoder import Encoder
 #from line import Line
 
-#i2c = board.I2C()
+i2c = board.I2C()
 GPIO.setmode(GPIO.BCM)
 
-#camera = Camera()
+camera = Camera()
 #eyes = Eyes(i2c)
 wheels = Wheels()
-#driver = Driver(wheels, eyes)
+driver = Driver(wheels)
 turbine = Turbine()
 encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
 encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
@@ -206,13 +206,24 @@ def return_home(pos, dir):
 print('====================== START ======================')
 
 try:
-    wheels.go(20000, 20000)
-    enc = 0
-    while enc < 3000:
-        enc = (encoderl.getValue() + encoderr.getValue()) // 2
-        print(enc)
+    wheels.go(60000, 60000)
+    time.sleep(100000)
+    driver.reset(config.DRIVER_CANDLE_PARAMS, speed=6000, kp=80, ki=0)
+    while True:
+        err = camera.err()
+        if err is None:
+            err = 0
 
-    wheels.stop()
+        print(err)
+        driver.iter(err)
+
+    #wheels.go(20000, 20000)
+    #enc = 0
+    #while enc < 3000:
+    #    enc = (encoderl.getValue() + encoderr.getValue()) // 2
+    #    print(enc)
+
+    #wheels.stop()
 
     #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
     #return_home(4, 270)
@@ -265,9 +276,10 @@ except KeyboardInterrupt:
 
 print('====================== END ======================')
 
-#camera.deinit()
+camera.deinit()
 #eyes.deinit()
 wheels.deinit()
 #driver.deinit()
 turbine.deinit()
-encoder.deinit()
+encoderl.deinit()
+encoderr.deinit()
