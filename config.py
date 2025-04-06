@@ -11,13 +11,13 @@ DRIVER_WALL_PARAMS = {
 }
 
 DRIVER_CANDLE_PARAMS = {
-    'kp': 120,
+    'kp': 100,
     'ki': 0,
     'kaw': 0,
-    'kd': 0,
-    'speed': 5000,
+    'kd': 5,
+    'speed': 6000,
     'dt': 0.01,
-    'max_control': 10000
+    'max_control': 15000
 }
 
 EYES_XSHUTS = [
@@ -28,9 +28,9 @@ EYES_XSHUTS = [
 WHEELS_ENA = board.D26
 WHEELS_IN1 = board.D19
 WHEELS_IN2 = board.D13
-WHEELS_IN3 = board.D21
-WHEELS_IN4 = board.D20
-WHEELS_ENB = board.D16
+WHEELS_IN3 = board.D20
+WHEELS_IN4 = board.D16
+WHEELS_ENB = board.D21
 
 TURBINE_PIN = board.D4
 TURBINE_OFF = 3000

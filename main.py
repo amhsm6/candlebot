@@ -206,16 +206,21 @@ def return_home(pos, dir):
 print('====================== START ======================')
 
 try:
-    wheels.go(60000, 60000)
-    time.sleep(100000)
-    driver.reset(config.DRIVER_CANDLE_PARAMS, speed=6000, kp=80, ki=0)
+    driver.reset(config.DRIVER_CANDLE_PARAMS)
     while True:
         err = camera.err()
         if err is None:
             err = 0
 
-        print(err)
         driver.iter(err)
+
+        dist = camera.dist()
+        print(dist)
+        if dist is not None and dist > 30:
+            wheels.stop()
+            turbine.on()
+            time.sleep(1)
+            turbine.off()
 
     #wheels.go(20000, 20000)
     #enc = 0
@@ -233,44 +238,6 @@ try:
     #except GoHome as e:
     #    return_home(e.pos, e.dir)
 
-#    turbine.set(4000)
-#    time.sleep(10)
-    #wheels.go(1000, 60000)
-    #while True:
-    #    print(encoder.getValue())
-    #    time.sleep(1)
-#        lsb = GPIO.input(Encoder.FWD)
-#        msb = GPIO.input(Encoder.REV)
-#
-#        encoded = (msb << 1) | lsb
-#        sum = (self.last_encoded << 2) | encoded;
-#
-#        if sum == 0b1101 or sum == 0b0100 or sum == 0b0010 or sum == 0b1011:
-#            self.value -= 1
-#
-#        if sum == 0b1110 or sum == 0b0111 or sum == 0b0001 or sum == 0b1000:
-#            self.value += 1
-#
-#        self.last_encoded = encoded
-#        pass
-#        print(encoder.value)
-    #time.sleep(3)
-    #turbine.set(4500)
-    #time.sleep(10)
-    
-#    driver.reset()
-#    while True:
-#        driver.iter()
-
-        #im = camera.read()
-        #for row in range(24):
-        #    for col in range(32):
-        #        print(f'{im[row, col]:.2f}', end=' ')
-
-        #    print()
-
-        #print('=' * 15)
-
 except KeyboardInterrupt:
     print()
 
@@ -278,8 +245,9 @@ print('====================== END ======================')
 
 camera.deinit()
 #eyes.deinit()
+#line.deinit()
 wheels.deinit()
-#driver.deinit()
+driver.deinit()
 turbine.deinit()
 encoderl.deinit()
 encoderr.deinit()

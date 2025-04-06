@@ -19,20 +19,18 @@ class Camera:
             frame = np.array(frame, dtype=np.float32)
 
             im = np.reshape(frame, (24, 32))
-            im = cv.flip(im, -1)
+            im = cv.flip(im, 0)
 
             return im
         except OSError:
             return None
 
-    def err(self):
+    def contour(self):
         im = self.read()
         if im is None:
             return None
 
-        im = cv.resize(im, (320, 240))
-
-        thresh = im > 30.0
+        thresh = im > 28.0
         thresh = thresh.astype(np.uint8)
         contours, _ = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
@@ -40,7 +38,12 @@ class Camera:
         if len(contours) == 0:
             return None
 
-        contour = contours[0]
+        return contours[0]
+
+    def err(self):
+        contour = self.contour()
+        if contour is None:
+            return None
 
         M = cv.moments(contour)
         if M['m00'] == 0:
@@ -49,5 +52,12 @@ class Camera:
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
 
-        err = 160 - cx
+        err = 16 - cx
         return err
+
+    def dist(self):
+        contour = self.contour()
+        if contour is None:
+            return None
+
+        return cv.contourArea(contour)

@@ -22,7 +22,10 @@ class Encoder:
     def deinit(self):
         print('DEINIT encoder')
 
+        GPIO.remove_event_detect(self.leftPin)
         GPIO.cleanup(self.leftPin)
+
+        GPIO.remove_event_detect(self.rightPin)
         GPIO.cleanup(self.rightPin)
 
     def transitionOccurred(self, channel):
