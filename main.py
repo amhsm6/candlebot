@@ -52,6 +52,10 @@ def reverse():
     pass
 
 def kill_candle():
+    # drive around the room while checking for cancle
+    # when found, run driver until close
+    # extinguish
+    # return
     pass
 
 def drive_edge():
