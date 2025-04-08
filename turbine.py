@@ -13,7 +13,11 @@ class Turbine():
 
     def deinit(self):
         print('DEINIT turbine', flush=True)
+
         self.off()
+        time.sleep(0.5)
+        self.set(0)
+        time.sleep(0.5)
         self.pwm.deinit()
 
     def set(self, x):

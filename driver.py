@@ -37,7 +37,6 @@ class Driver:
         control = max(control, -self.params['max_control'])
         self.limcontrol_prev = control
 
-        print(control, self.params['speed'] - control, self.params['speed'] + control, flush=True)
         self.wheels.go(self.params['speed'] - control, self.params['speed'] + control)
 
         time.sleep(self.params['dt'])

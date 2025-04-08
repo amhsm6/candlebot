@@ -35,21 +35,20 @@ class GoHome(Exception):
         self.dir = dir
 
 def can_go(i):
-    return eyes.see(i) > 5000
+    x = eyes.see(i)
+    print(f'{i}: {x}', flush=True)
+    return x is not None and x > 5000
 
-# FIXME
 def turn_left():
-    print('TURN_LEFT', flush=True)
-    pass
+    driver.turn(-10000, 90)
 
 def turn_right():
-    print('TURN_RIGHT', flush=True)
-    pass
+    driver.turn(10000, 90)
 
 def reverse():
-    print('REVERSE', flush=True)
-    pass
+    driver.turn(10000, 180)
 
+# FIXME
 def kill_candle():
     # drive around the room while checking for candle
     # when found, run driver until close
@@ -133,10 +132,7 @@ def find_candle(pos, dir):
         elif reldir == 90:
             turn_right()
 
-        #wheels.go(50000, 50000)
-        #time.sleep(2)
-        #wheels.stop()
-        #time.sleep(2)
+        driver.fwd(20000, 20)
 
         if drive_edge():
             raise GoHome(pos, newdir)
@@ -163,7 +159,7 @@ def find_candle(pos, dir):
     return dir
 
 def return_home(pos, dir):
-    print(graph)
+    print(graph, flush=True)
     target = 0
 
     queue = [(0, pos)]
@@ -201,22 +197,18 @@ def return_home(pos, dir):
         curr = par[curr]
 
     path.reverse()
-    print(path)
+    print(path, flush=True)
 
 print('====================== START ======================', flush=True)
 
 
 try:
-    driver.fwd(10000, 10)
-    time.sleep(10000)
-    driver.turn(-10000, 90)
-    time.sleep(2)
-    driver.turn(10000, 90)
-    time.sleep(2)
-    driver.turn(-10000, 90)
-    time.sleep(2)
-    driver.turn(10000, 90)
-    time.sleep(2)
+    drive_edge()
+    wheels.stop()
+    time.sleep(5)
+    turn_right()
+    driver.fwd(20000, 30)
+    drive_edge()
 
     if 0:
         wheels.go(-40000, -40000) 
