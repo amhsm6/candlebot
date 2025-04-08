@@ -21,7 +21,7 @@ wheels = Wheels()
 encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
 encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
 driver = Driver(wheels, encoderl, encoderr)
-#turbine = Turbine()
+turbine = Turbine()
 #line = Line()
 
 graph = {}
@@ -207,8 +207,10 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    #driver.turn(-10000, 90)
-    #time.sleep(2)
+    driver.fwd(10000, 10)
+    time.sleep(10000)
+    driver.turn(-10000, 90)
+    time.sleep(2)
     driver.turn(10000, 90)
     time.sleep(2)
     driver.turn(-10000, 90)
@@ -262,8 +264,9 @@ print('====================== END ======================', flush=True)
 
 camera.deinit()
 eyes.deinit()
-#line.deinit()
 wheels.deinit()
 driver.deinit()
 turbine.deinit()
-encoders.deinit()
+encoderl.deinit()
+encoderr.deinit()
+#line.deinit()

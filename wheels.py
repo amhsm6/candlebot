@@ -55,6 +55,6 @@ class Wheels():
         self.in4.value = True
         self.ena.duty_cycle = 60000
         self.enb.duty_cycle = 60000
-        time.sleep(0.01)
+        time.sleep(0.05)
 
         self.go(0, 0)
