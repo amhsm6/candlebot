@@ -47,11 +47,13 @@ LINE_SENSOR = board.D25
 WHEEL_BASE = 18
 WHEEL_DIAM = 4.2
 
+WHEEL_REV = 690
+
 def deg_to_cm(deg):
     return (deg / 360.0) * 3.14 * WHEEL_BASE
 
-def cm_to_rot(cm):
-    return cm / (3.14 * WHEEL_DIAM)
+def cm_to_enc(cm):
+    return cm / (3.14 * WHEEL_DIAM) * WHEEL_REV
  
-def deg_to_rot(deg):
-    return cm_to_rot(deg_to_cm(deg))
+def deg_to_enc(deg):
+    return cm_to_enc(deg_to_cm(deg))

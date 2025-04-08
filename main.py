@@ -18,10 +18,10 @@ GPIO.setmode(GPIO.BCM)
 camera = Camera()
 eyes = Eyes(i2c)
 wheels = Wheels()
-driver = Driver(wheels)
-turbine = Turbine()
 encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
 encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
+driver = Driver(wheels, encoderl, encoderr)
+#turbine = Turbine()
 #line = Line()
 
 graph = {}
@@ -205,12 +205,16 @@ def return_home(pos, dir):
 
 print('====================== START ======================', flush=True)
 
-try:
-    wheels.go(3000, 3000)
-    time.sleep(2)
-    print(encoderl.getValue(), encoderr.getValue())
-    wheels.stop()
 
+try:
+    #driver.turn(-10000, 90)
+    #time.sleep(2)
+    driver.turn(10000, 90)
+    time.sleep(2)
+    driver.turn(-10000, 90)
+    time.sleep(2)
+    driver.turn(10000, 90)
+    time.sleep(2)
 
     if 0:
         wheels.go(-40000, -40000) 
@@ -262,5 +266,4 @@ eyes.deinit()
 wheels.deinit()
 driver.deinit()
 turbine.deinit()
-encoderl.deinit()
-encoderr.deinit()
+encoders.deinit()

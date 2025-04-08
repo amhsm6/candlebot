@@ -2,9 +2,12 @@ import time
 import config
 
 class Driver:
-    def __init__(self, wheels):
+    def __init__(self, wheels, encoderl, encoderr):
         print('INIT driver', flush=True)
+
         self.wheels = wheels
+        self.encoderl = encoderl
+        self.encoderr = encoderr
         self.reset()
 
     def deinit(self):
@@ -39,3 +42,35 @@ class Driver:
 
         time.sleep(self.params['dt'])
         self.err_prev = err
+
+    def fwd(self, v, cm):
+        self.wheels.go(v, v)
+
+        lref = self.encoderl.getValue()
+        lval = 0
+
+        rref = self.encoderr.getValue()
+        rval = 0
+
+        while abs(lval - lref) < config.cm_to_enc(cm) and abs(rval - rref) < config.cm_to_enc(cm):
+            lval = self.encoderl.getValue()
+            rval = self.encoderr.getValue()
+            time.sleep(0.001)
+        
+        self.wheels.stop()
+
+    def turn(self, v, deg):
+        self.wheels.go(v, -v)
+
+        lref = self.encoderl.getValue()
+        lval = self.encoderl.getValue()
+
+        rref = self.encoderr.getValue()
+        rval = self.encoderr.getValue()
+
+        while abs(lval - lref) < config.deg_to_enc(deg) and abs(rval - rref) < config.deg_to_enc(deg):
+            lval = self.encoderl.getValue()
+            rval = self.encoderr.getValue()
+            time.sleep(0.001)
+        
+        self.wheels.stop()

@@ -6,6 +6,7 @@ import time
 class Turbine():
     def __init__(self):
         print('INIT turbine', flush=True)
+
         self.pwm = pwmio.PWMOut(config.TURBINE_PIN, frequency=50)
         time.sleep(1)
         self.off()
