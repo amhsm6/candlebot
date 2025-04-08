@@ -1,10 +1,10 @@
 import board
 
 DRIVER_WALL_PARAMS = {
-    'kp': 120,
-    'ki': 0,
+    'kp': 60,
+    'ki': 20,
     'kaw': 0,
-    'kd': 0,
+    'kd': 3,
     'speed': 30000,
     'dt': 0.01,
     'max_control': 30000
@@ -21,8 +21,8 @@ DRIVER_CANDLE_PARAMS = {
 }
 
 EYES_XSHUTS = [
-    (board.D27, 0x28),
-    (board.D17, 0x29)
+    (board.D18, 0x28),
+    (board.D15, 0x29)
 ]
 
 WHEELS_ENA = board.D26
@@ -43,3 +43,15 @@ ENCODERR_PIN1 = 22
 ENCODERR_PIN2 = 27
 
 LINE_SENSOR = board.D25
+
+WHEEL_BASE = 18
+WHEEL_DIAM = 4.2
+
+def deg_to_cm(deg):
+    return (deg / 360.0) * 3.14 * WHEEL_BASE
+
+def cm_to_rot(cm):
+    return cm / (3.14 * WHEEL_DIAM)
+ 
+def deg_to_rot(deg):
+    return cm_to_rot(deg_to_cm(deg))

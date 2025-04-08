@@ -1,16 +1,27 @@
 import mlx.mlx90640 as mlx
 import cv2 as cv
 import numpy as np
+import time
 
 class Camera:
     def __init__(self):
-        print('INIT camera')
+        print('INIT camera', flush=True)
 
-        self.cam = mlx.Mlx9064x('I2C-1', frame_rate=32)
-        self.cam.init()
+        while True:
+            try:
+                self.cam = mlx.Mlx9064x('I2C-1', frame_rate=32)
+                self.cam.init()
+                break
+
+            except OSError as e:
+                print('FAILURE camera', flush=True)
+                print('<><><><><>RETRY in 2s<><><><><><>', flush=True)
+                time.sleep(2)
+
+        print('SUCCESS camera', flush=True)
 
     def deinit(self):
-        print('DEINIT camera')
+        print('DEINIT camera', flush=True)
 
     def read(self):
         try:
@@ -22,6 +33,7 @@ class Camera:
             im = cv.flip(im, 0)
 
             return im
+
         except OSError:
             return None
 

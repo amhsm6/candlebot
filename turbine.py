@@ -5,13 +5,13 @@ import time
 
 class Turbine():
     def __init__(self):
-        print('INIT turbine')
+        print('INIT turbine', flush=True)
         self.pwm = pwmio.PWMOut(config.TURBINE_PIN, frequency=50)
         time.sleep(1)
         self.off()
 
     def deinit(self):
-        print('DEINIT turbine')
+        print('DEINIT turbine', flush=True)
         self.off()
         self.pwm.deinit()
 

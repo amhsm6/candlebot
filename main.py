@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 
 from camera import Camera
 from driver import Driver
-#from eyes import Eyes
+from eyes import Eyes
 from turbine import Turbine
 from wheels import Wheels
 from encoder import Encoder
@@ -16,7 +16,7 @@ i2c = board.I2C()
 GPIO.setmode(GPIO.BCM)
 
 camera = Camera()
-#eyes = Eyes(i2c)
+eyes = Eyes(i2c)
 wheels = Wheels()
 driver = Driver(wheels)
 turbine = Turbine()
@@ -35,46 +35,42 @@ class GoHome(Exception):
         self.dir = dir
 
 def can_go(i):
-    return bool(int(input(f'CAN GO {i}? ')))
-#    return eyes.see(i) > 300
+    return eyes.see(i) > 5000
 
 # FIXME
 def turn_left():
-    print('TURN_LEFT')
+    print('TURN_LEFT', flush=True)
     pass
 
 def turn_right():
-    print('TURN_RIGHT')
+    print('TURN_RIGHT', flush=True)
     pass
 
 def reverse():
-    print('REVERSE')
+    print('REVERSE', flush=True)
     pass
 
 def kill_candle():
-    # drive around the room while checking for cancle
+    # drive around the room while checking for candle
     # when found, run driver until close
     # extinguish
     # return
     pass
 
 def drive_edge():
-    print('DRIVE_EDGE')
-    if int(input('KILL CANDLE????? ')) == 1:
-        return True
-    return False
-    #driver.reset()
-    #while True:
-    #    driver.iter()
+    driver.reset()
+    while True:
+        err = eyes.see(0) - eyes.see(1)
+        driver.iter(err)
 
-    #    if line.check_room():
-    #        kill_candle()
-    #        return True
+        #if line.check_room():
+        #    kill_candle()
+        #    return True
 
-    #    if not can_go(1) or can_go(0) or can_go(2):
-    #        driver.stop()
-    #        time.sleep(2)
-    #        return False
+        if can_go(0) or can_go(1): #if not can_go(1) or can_go(0) or can_go(2):
+            wheels.stop()
+            time.sleep(2)
+            return False
 
 def revert(dir):
     return (180 + dir) % 360
@@ -120,18 +116,18 @@ def next_paths(dir):
     return next
 
 def find_candle(pos, dir):
-    print(f'ENTER {pos} @ {dir}')
+    print(f'ENTER {pos} @ {dir}', flush=True)
     print(graph)
 
     next = next_paths(dir)
-    print(f'NEXT: {next}')
+    print(f'NEXT: {next}', flush=True)
 
     for newdir in next:
         newpos = update_graph(pos, newdir)
-        print(f'>=> {pos} @ {dir} -> {newpos} @ {newdir}')
+        print(f'>=> {pos} @ {dir} -> {newpos} @ {newdir}', flush=True)
 
         reldir = rel(dir, newdir)
-        print(f'* EXEC {reldir}')
+        print(f'* EXEC {reldir}', flush=True)
         if reldir == -90:
             turn_left()
         elif reldir == 90:
@@ -146,14 +142,14 @@ def find_candle(pos, dir):
             raise GoHome(pos, newdir)
 
         dir = find_candle(newpos, newdir)
-        print(f'! STUCK {newpos} @ {dir}')
+        print(f'! STUCK {newpos} @ {dir}', flush=True)
 
         targetdir = revert(newdir)
         reldir = rel(dir, targetdir)
         dir = targetdir
 
-        print(f'? EXIT {targetdir}')
-        print(f'* EXEC {reldir}')
+        print(f'? EXIT {targetdir}', flush=True)
+        print(f'* EXEC {reldir}', flush=True)
 
         if reldir == -90:
             turn_left()
@@ -181,7 +177,7 @@ def return_home(pos, dir):
         if x == target:
             break
 
-        print(f'VISIT {x} DIST {d}')
+        print(f'VISIT {x} DIST {d}', flush=True)
 
         visited.add(x)
 
@@ -190,7 +186,7 @@ def return_home(pos, dir):
 
             d = d + 1
             if y not in dist or d < dist[y]:
-                print(f' UPD {y} -> {d}: {graph[x][y]}')
+                print(f' UPD {y} -> {d}: {graph[x][y]}', flush=True)
                 dist[y] = d
                 par[y] = x
 
@@ -207,24 +203,37 @@ def return_home(pos, dir):
     path.reverse()
     print(path)
 
-print('====================== START ======================')
+print('====================== START ======================', flush=True)
 
 try:
-    driver.reset(config.DRIVER_CANDLE_PARAMS)
-    while True:
-        err = camera.err()
-        if err is None:
-            err = 0
+    wheels.go(3000, 3000)
+    time.sleep(2)
+    print(encoderl.getValue(), encoderr.getValue())
+    wheels.stop()
 
-        driver.iter(err)
 
-        dist = camera.dist()
-        print(dist)
-        if dist is not None and dist > 30:
-            wheels.stop()
-            turbine.on()
-            time.sleep(1)
-            turbine.off()
+    if 0:
+        wheels.go(-40000, -40000) 
+        time.sleep(10000)
+
+    #drive_edge()
+    #driver.reset(config.DRIVER_CANDLE_PARAMS)
+    #while True:
+    #    err = camera.err()
+    #    if err is None:
+    #        err = 0
+
+    #    driver.iter(err)
+
+    #    dist = camera.dist()
+    #    print(dist, flush=True)
+    #    if dist is not None and dist > 30:
+    #        print(5 / 0)
+    #        break
+            #wheels.stop()
+            #turbine.on()
+            #time.sleep(1)
+            #turbine.off()
 
     #wheels.go(20000, 20000)
     #enc = 0
@@ -243,12 +252,12 @@ try:
     #    return_home(e.pos, e.dir)
 
 except KeyboardInterrupt:
-    print()
+    print(flush=True)
 
-print('====================== END ======================')
+print('====================== END ======================', flush=True)
 
 camera.deinit()
-#eyes.deinit()
+eyes.deinit()
 #line.deinit()
 wheels.deinit()
 driver.deinit()

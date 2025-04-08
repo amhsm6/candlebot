@@ -3,12 +3,12 @@ import config
 
 class Driver:
     def __init__(self, wheels):
-        print('INIT driver')
+        print('INIT driver', flush=True)
         self.wheels = wheels
         self.reset()
 
     def deinit(self):
-        print('DEINIT driver')
+        print('DEINIT driver', flush=True)
 
     def reset(self, preset=config.DRIVER_WALL_PARAMS, **kwargs):
         self.integral = 0
@@ -34,7 +34,7 @@ class Driver:
         control = max(control, -self.params['max_control'])
         self.limcontrol_prev = control
 
-        print(control, self.params['speed'] - control, self.params['speed'] + control)
+        print(control, self.params['speed'] - control, self.params['speed'] + control, flush=True)
         self.wheels.go(self.params['speed'] - control, self.params['speed'] + control)
 
         time.sleep(self.params['dt'])

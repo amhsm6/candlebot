@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 class Encoder:
 
     def __init__(self, leftPin, rightPin, callback=None):
-        print('INIT encoder')
+        print('INIT encoder', flush=True)
 
         self.leftPin = leftPin
         self.rightPin = rightPin
@@ -20,7 +20,7 @@ class Encoder:
         GPIO.add_event_detect(self.rightPin, GPIO.BOTH, callback=self.transitionOccurred)  
 
     def deinit(self):
-        print('DEINIT encoder')
+        print('DEINIT encoder', flush=True)
 
         GPIO.remove_event_detect(self.leftPin)
         GPIO.cleanup(self.leftPin)

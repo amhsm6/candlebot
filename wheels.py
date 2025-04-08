@@ -6,7 +6,7 @@ import config
 
 class Wheels():
     def __init__(self):
-        print('INIT wheels')
+        print('INIT wheels', flush=True)
 
         self.ena = pwmio.PWMOut(config.WHEELS_ENA)
         self.in1 = digitalio.DigitalInOut(config.WHEELS_IN1)
@@ -21,7 +21,7 @@ class Wheels():
         self.in4.switch_to_output(value=False)
 
     def deinit(self):
-        print('DEINIT wheels')
+        print('DEINIT wheels', flush=True)
 
         self.stop()
 
