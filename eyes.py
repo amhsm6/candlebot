@@ -48,14 +48,16 @@ class Eyes():
             print('FAILURE eyes', flush=True)
 
     def see(self, n=None):
-        def see_eye(eye):
+        def see_eye(x):
+            (n, eye) = x
+
             try:
                 return eye.range
             except OSError as e:
-                print('FAILURE eyes', flush=True)
+                print(f'FAILURE eye {n}', flush=True)
                 return None
 
         if n == None:
-            return list(map(see_eye, self.eyes))
+            return list(map(see_eye, enumerate(self.eyes)))
 
-        return see_eye(self.eyes[n])
+        return see_eye((n, self.eyes[n]))

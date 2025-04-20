@@ -46,10 +46,10 @@ class Driver:
         self.wheels.go(v, v)
 
         lref = self.encoderl.getValue()
-        lval = 0
+        lval = lref
 
         rref = self.encoderr.getValue()
-        rval = 0
+        rval = rref
 
         while abs(lval - lref) < config.cm_to_enc(cm) and abs(rval - rref) < config.cm_to_enc(cm):
             lval = self.encoderl.getValue()
@@ -62,10 +62,10 @@ class Driver:
         self.wheels.go(v, -v)
 
         lref = self.encoderl.getValue()
-        lval = self.encoderl.getValue()
+        lval = lref
 
         rref = self.encoderr.getValue()
-        rval = self.encoderr.getValue()
+        rval = rref
 
         while abs(lval - lref) < config.deg_to_enc(deg) and abs(rval - rref) < config.deg_to_enc(deg):
             lval = self.encoderl.getValue()
