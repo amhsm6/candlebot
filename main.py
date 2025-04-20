@@ -37,7 +37,12 @@ class GoHome(Exception):
 def can_go(i):
     x = eyes.see(i)
     print(f'{i}: {x}', flush=True)
-    return x is not None and x > 5000
+    return x is not None and x > 700
+
+def cannot_go(i):
+    x = eyes.see(i)
+    print(f'{i}: {x}', flush=True)
+    return x is not None and x < 150
 
 def turn_left():
     driver.turn(-10000, 90)
@@ -59,14 +64,14 @@ def kill_candle():
 def drive_edge():
     driver.reset()
     while True:
-        err = eyes.see(0) - eyes.see(1)
+        err = eyes.see(0) - eyes.see(2)
         driver.iter(err)
 
         #if line.check_room():
         #    kill_candle()
         #    return True
 
-        if can_go(0) or can_go(1): #if not can_go(1) or can_go(0) or can_go(2):
+        if cannot_go(1) or can_go(0) or can_go(2):
             wheels.stop()
             time.sleep(2)
             return False
@@ -132,7 +137,7 @@ def find_candle(pos, dir):
         elif reldir == 90:
             turn_right()
 
-        driver.fwd(20000, 20)
+        driver.fwd(15000, 20)
 
         if drive_edge():
             raise GoHome(pos, newdir)
@@ -203,16 +208,19 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    drive_edge()
-    wheels.stop()
-    time.sleep(5)
-    turn_right()
-    driver.fwd(20000, 30)
-    drive_edge()
+    while True:
+        print(eyes.see(), flush=True)
+    if 1:
+        reverse()
+        drive_edge()
+        turn_left()
+        drive_edge()
 
-    if 0:
-        wheels.go(-40000, -40000) 
-        time.sleep(10000)
+    drive_edge()
+    driver.fwd(15000, 30)
+    turn_right()
+    driver.fwd(15000, 30)
+    drive_edge()
 
     #drive_edge()
     #driver.reset(config.DRIVER_CANDLE_PARAMS)
