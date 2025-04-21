@@ -21,9 +21,9 @@ DRIVER_CANDLE_PARAMS = {
 }
 
 EYES_XSHUTS = [
-    (board.D18, 0x28),
-    (board.D6, 0x27),
-    (board.D15, 0x26),
+    (board.D5, 0x28),
+    (board.D0, 0x25),
+    (board.D6, 0x26),
 ]
 
 WHEELS_ENA = board.D26
@@ -45,7 +45,7 @@ ENCODERR_PIN2 = 27
 
 LINE_SENSOR = board.D25
 
-WHEEL_BASE = 18
+WHEEL_BASE = 17.5
 WHEEL_DIAM = 4.2
 
 WHEEL_REV = 690
