@@ -34,21 +34,17 @@ class GoHome(Exception):
         self.pos = pos
         self.dir = dir
 
-def can_go(i):
-    x = eyes.see(i)
-    print(f'{i}: {x}', flush=True)
-    return x is not None and x > 700
+def can_go(x):
+    return x > 700 or x == 0
 
-def cannot_go(i):
-    x = eyes.see(i)
-    print(f'{i}: {x}', flush=True)
-    return x is not None and x < 100
+def cannot_go(x):
+    return x < 100
 
 def turn_left():
-    driver.turn(-10000, 90)
+    driver.turn(-10000, 85)
 
 def turn_right():
-    driver.turn(10000, 90)
+    driver.turn(10000, 85)
 
 def reverse():
     driver.turn(10000, 180)
@@ -64,20 +60,39 @@ def kill_candle():
 def drive_edge():
     driver.reset()
     while True:
-        err = eyes.see(0) - eyes.see(2)
+        [left, center, right] = eyes.see()
+        print(f'{left} {center} {right}', flush=True)
+
+        err = left - right
         driver.iter(err)
 
         #if line.check_room():
         #    kill_candle()
         #    return True
 
-        if cannot_go(1):
+        if cannot_go(center):
             wheels.stop()
             return False
 
-        if can_go(0) or can_go(2):
-            driver.fwd(config.DRIVER_WALL_PARAMS['speed'], 30)
+        if can_go(left) or can_go(right):
+            driver.fwd(config.DRIVER_WALL_PARAMS['speed'], 20)
             return False
+
+def from_center():
+    dists = eyes.see()
+    print(f'from_center {dists[0]} {dists[1]} {dists[2]}', flush=True)
+    if not can_go(dists[0]):
+        driver.reset(kd=0.4)
+        while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+            err = eyes.see(0) - 300
+            driver.iter(err)
+    elif not can_go(dists[2]):
+        driver.reset(kd=0.4)
+        while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+            err = 300 - eyes.see(2)
+            driver.iter(err)
+    else:
+        driver.fwd(15000, 35)
 
 def revert(dir):
     return (180 + dir) % 360
@@ -113,12 +128,12 @@ def update_graph(pos, dir):
 def next_paths(dir):
     next = []
 
-    for i in range(3):
-        if not can_go(i):
-            continue
-
-        reldir = (i - 1) * 90
-        next.append(to_abs(dir, reldir))
+    dists = eyes.see()
+    print(f'{dists[0]} {dists[1]} {dists[2]}', flush=True)
+    for i, d in enumerate(dists):
+        if can_go(d):
+            reldir = (i - 1) * 90
+            next.append(to_abs(dir, reldir))
     
     return next
 
@@ -127,6 +142,9 @@ def find_candle(pos, dir):
     print(graph)
 
     next = next_paths(dir)
+    if pos == 0:
+        next.append(180)
+
     print(f'NEXT: {next}', flush=True)
 
     for newdir in next:
@@ -139,8 +157,11 @@ def find_candle(pos, dir):
             turn_left()
         elif reldir == 90:
             turn_right()
+        elif reldir == 180:
+            reverse()
 
-        driver.fwd(15000, 20)
+        time.sleep(2)
+        from_center()
 
         if drive_edge():
             raise GoHome(pos, newdir)
@@ -157,8 +178,10 @@ def find_candle(pos, dir):
 
         if reldir == -90:
             turn_left()
+            from_center()
         elif reldir == 90:
             turn_right()
+            from_center()
         elif reldir == 180:
             reverse()
 
@@ -211,56 +234,61 @@ print('====================== START ======================', flush=True)
 
 
 try:
-#    while True:
-#        print(eyes.see(), flush=True)
-
-    #reverse()
+    #while True:
+    #    print(eyes.see(), flush=True)
     #driver.turn(-15000, 90)
-    #driver.fwd(15000, 20)
-    #driver.turn(10000, 80)
-    #driver.fwd(15000, 30)
+    #driver.reset()
+    #while driver.encl() < config.cm_to_enc(40) or driver.encr() < config.cm_to_enc(40):
+    #    err = 300 - eyes.see(2)
+    #    driver.iter(err)
+
     #drive_edge()
     #reverse()
+    #driver.fwd(15000, 20)
+    #driver.turn(10000, 40)
+    #driver.turn(15000, 90)
+    #driver.fwd(15000, 100)
+    #driver.fwd(-15000, 70)
+    #turbine.on()
+    #time.sleep(2)
+    #turbine.off()
+    #time.sleep(1000)
+    #driver.fwd(-10000, 5)
+    #reverse()
 
-    while True:
-        drive_edge()
-        time.sleep(0.5)
+    #while True:
+    #    drive_edge()
+    #    time.sleep(0.5)
 
-        target = eyes.see(1) + 100
-        print(f'TARGET {target}', flush=True)
+    #    turn_right()
 
-        turn_left()
+    #    # GOOD!
+    #    driver.reset(kd=0.4)
+    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+    #        err = eyes.see(0) - 300
+    #        driver.iter(err)
 
-        # GOOD!
-        driver.reset()
-        while driver.encl() < config.cm_to_enc(40) or driver.encr() < config.cm_to_enc(40):
-            err = target - eyes.see(2)
-            driver.iter(err)
+    #    drive_edge()
+    #    driver.fwd(-15000, 5)
+    #    time.sleep(0.5)
 
-        drive_edge()
-        time.sleep(0.5)
+    #    reverse()
 
-        turn_right()
-        driver.fwd(15000, 40)
-        drive_edge()
-        time.sleep(0.5)
+    #    drive_edge()
+    #    time.sleep(0.5)
 
-        reverse()
+    #    turn_left()
 
-        drive_edge()
-        time.sleep(0.5)
+    #    driver.reset(kd=0.4)
+    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+    #        err = 300 - eyes.see(2)
+    #        driver.iter(err)
 
-        turn_left()
-        driver.fwd(15000, 40)
-        drive_edge()
-        time.sleep(0.5)
+    #    drive_edge()
+    #    driver.fwd(-15000, 5)
+    #    time.sleep(0.5)
 
-        turn_right()
-        driver.fwd(15000, 40)
-        drive_edge()
-        time.sleep(0.5)
-
-        reverse()
+    #    reverse()
 
     #drive_edge()
     #driver.reset(config.DRIVER_CANDLE_PARAMS)
@@ -292,10 +320,10 @@ try:
     #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
     #return_home(4, 270)
 
-    #try:
-    #    find_candle(0, 0)
-    #except GoHome as e:
-    #    return_home(e.pos, e.dir)
+    try:
+        find_candle(0, 0)
+    except GoHome as e:
+        return_home(e.pos, e.dir)
 
 except KeyboardInterrupt:
     print(flush=True)

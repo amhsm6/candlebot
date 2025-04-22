@@ -57,7 +57,23 @@ class Eyes():
                 print(f'FAILURE eye {n}', flush=True)
                 return None
 
-        if n == None:
-            return list(map(see_eye, enumerate(self.eyes)))
+        measurements = None
+        if n is None:
+            measurements = [[] for _ in range(len(self.eyes))]
+        else:
+            measurements = [[]]
 
-        return see_eye((n, self.eyes[n]))
+        for _ in range(config.EYES_FILTER_WINDOW):
+            if n is None:
+                for i, measure in enumerate(map(see_eye, enumerate(self.eyes))):
+                    measurements[i].append(measure)
+            else:
+                measurements[0].append(see_eye((n, self.eyes[n])))
+
+            time.sleep(0.001)
+        
+        res = list(map(lambda data: sorted(data)[config.EYES_FILTER_WINDOW // 2], measurements))
+        if n is None:
+            return res
+        else:
+            return res[0]
