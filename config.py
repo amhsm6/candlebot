@@ -1,30 +1,34 @@
 import board
 
 DRIVER_WALL_PARAMS = {
-    'kp': 60,
-    'ki': 20,
+    'kp': 12,
+    'ki': 3,
     'kaw': 0,
-    'kd': 2.5,
-    'speed': 15000,
+    'kd': 2,
+    'speed': 20000,
     'dt': 0.01,
-    'max_control': 40000
+    'max_control': 50000
 }
 
 DRIVER_CANDLE_PARAMS = {
-    'kp': 100,
-    'ki': 0,
+    'kp': 250,
+    'ki': 10,
     'kaw': 0,
-    'kd': 5,
-    'speed': 6000,
-    'dt': 0.01,
-    'max_control': 40000
+    'kd': 10,
+    'speed': 12000,
+    'dt': None,
+    'max_control': 5000
 }
 
 EYES_XSHUTS = [
-    (board.D18, 0x28),
-    (board.D6, 0x27),
-    (board.D15, 0x26),
+    (board.D5, 0x28),
+    (board.D0, 0x25),
+    (board.D6, 0x26),
+    (board.D24, 0x30),
+    (board.D23, 0x24),
 ]
+
+EYES_FILTER_WINDOW = 3
 
 WHEELS_ENA = board.D26
 WHEELS_IN1 = board.D19
@@ -33,7 +37,7 @@ WHEELS_IN3 = board.D20
 WHEELS_IN4 = board.D16
 WHEELS_ENB = board.D21
 
-TURBINE_PIN = board.D4
+TURBINE_PIN = board.D7
 TURBINE_OFF = 3000
 TURBINE_ON = 4500
 
@@ -45,7 +49,7 @@ ENCODERR_PIN2 = 27
 
 LINE_SENSOR = board.D25
 
-WHEEL_BASE = 18
+WHEEL_BASE = 16
 WHEEL_DIAM = 4.2
 
 WHEEL_REV = 690

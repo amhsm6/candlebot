@@ -23,12 +23,17 @@ class Driver:
         for p in kwargs:
             self.params[p] = kwargs[p]
 
+        self.lref = self.encoderl.getValue()
+        self.rref = self.encoderr.getValue()
+
     def iter(self, err):
+        dt = self.params['dt'] if self.params['dt'] is not None else 1
+
         cp = err * self.params['kp']
 
-        self.integral += err * self.params['dt'] * self.params['ki'] - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
+        self.integral += err * dt * self.params['ki'] - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
 
-        cd = (err - self.err_prev) / self.params['dt'] * self.params['kd']
+        cd = (err - self.err_prev) / dt * self.params['kd']
 
         control = cp + self.integral + cd
         self.control_prev = control
@@ -36,24 +41,38 @@ class Driver:
         control = min(control, self.params['max_control'])
         control = max(control, -self.params['max_control'])
         self.limcontrol_prev = control
-
+    
         self.wheels.go(self.params['speed'] - control, self.params['speed'] + control)
 
-        time.sleep(self.params['dt'])
+        if self.params['dt'] is not None:
+            time.sleep(dt)
+
         self.err_prev = err
 
-    def fwd(self, v, cm):
-        self.wheels.go(v, v)
+    def encl(self):
+        return abs(self.encoderl.getValue() - self.lref)
 
-        lref = self.encoderl.getValue()
-        lval = lref
+    def encr(self):
+        return abs(self.encoderr.getValue() - self.rref)
 
-        rref = self.encoderr.getValue()
-        rval = rref
+    def fwd(self, a, b, c=None):
+        vl = 0
+        vr = 0
+        cm = 0
 
-        while abs(lval - lref) < config.cm_to_enc(cm) and abs(rval - rref) < config.cm_to_enc(cm):
-            lval = self.encoderl.getValue()
-            rval = self.encoderr.getValue()
+        if c is None:
+            vl = a
+            vr = a
+            cm = b
+        else:
+            vl = a
+            vr = b
+            cm = c
+
+        self.wheels.go(vl, vr)
+
+        self.reset()
+        while self.encl() < config.cm_to_enc(cm) or self.encr() < config.cm_to_enc(cm):
             time.sleep(0.001)
         
         self.wheels.stop()
@@ -61,15 +80,8 @@ class Driver:
     def turn(self, v, deg):
         self.wheels.go(v, -v)
 
-        lref = self.encoderl.getValue()
-        lval = lref
-
-        rref = self.encoderr.getValue()
-        rval = rref
-
-        while abs(lval - lref) < config.deg_to_enc(deg) and abs(rval - rref) < config.deg_to_enc(deg):
-            lval = self.encoderl.getValue()
-            rval = self.encoderr.getValue()
+        self.reset()
+        while self.encl() < config.deg_to_enc(deg) or self.encr() < config.deg_to_enc(deg):
             time.sleep(0.001)
         
         self.wheels.stop()

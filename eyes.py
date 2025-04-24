@@ -23,7 +23,7 @@ class Eyes():
         self.eyes = []
         for xshut, addr in self.xshuts:
             xshut.value = True
-            time.sleep(0.1)
+            time.sleep(0.2)
 
             print(f'TRY eyes on 0x{addr:x}...', flush=True)
             eye = VL53L0X(i2c)
@@ -38,11 +38,11 @@ class Eyes():
         print('DEINIT eyes', flush=True)
 
         try:
-            for xshut, _ in self.xshuts:
-                xshut.deinit()
-
             for eye in self.eyes:
                 eye.stop_continuous()
+
+            for xshut, _ in self.xshuts:
+                xshut.deinit()
 
         except OSError as e:
             print('FAILURE eyes', flush=True)
@@ -57,7 +57,23 @@ class Eyes():
                 print(f'FAILURE eye {n}', flush=True)
                 return None
 
-        if n == None:
-            return list(map(see_eye, enumerate(self.eyes)))
+        measurements = None
+        if n is None:
+            measurements = [[] for _ in range(len(self.eyes))]
+        else:
+            measurements = [[]]
 
-        return see_eye((n, self.eyes[n]))
+        for _ in range(config.EYES_FILTER_WINDOW):
+            if n is None:
+                for i, measure in enumerate(map(see_eye, enumerate(self.eyes))):
+                    measurements[i].append(measure)
+            else:
+                measurements[0].append(see_eye((n, self.eyes[n])))
+
+            time.sleep(0.001)
+        
+        res = list(map(lambda data: sorted(data)[config.EYES_FILTER_WINDOW // 2], measurements))
+        if n is None:
+            return res
+        else:
+            return res[0]

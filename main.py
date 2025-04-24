@@ -34,15 +34,11 @@ class GoHome(Exception):
         self.pos = pos
         self.dir = dir
 
-def can_go(i):
-    x = eyes.see(i)
-    print(f'{i}: {x}', flush=True)
-    return x is not None and x > 700
+def can_go(x):
+    return x > 700
 
-def cannot_go(i):
-    x = eyes.see(i)
-    print(f'{i}: {x}', flush=True)
-    return x is not None and x < 150
+def cannot_go(x):
+    return x < 80
 
 def turn_left():
     driver.turn(-10000, 90)
@@ -53,39 +49,148 @@ def turn_right():
 def reverse():
     driver.turn(10000, 180)
 
-# FIXME
 def kill_candle():
-    # drive around the room while checking for candle
-    # when found, run driver until close
-    # extinguish
-    # return
-    pass
+    found = False
+
+    driver.turn(-10000, 90)    
+    time.sleep(1)
+    
+    wheels.go(10000, -10000)
+
+    driver.reset()
+    while driver.encl() < config.deg_to_enc(180) or driver.encr() < config.deg_to_enc(180):
+        data = camera.read()
+        if data is not None:
+            found = True
+            break
+
+    if not found:
+        print('NO CANDLE', flush=True)
+        return False
+
+    print('FOUND', flush=True)
+    wheels.stop()
+    time.sleep(1)
+
+    driver.reset(config.DRIVER_CANDLE_PARAMS)
+    while True:
+         data = camera.read()
+         if data is None:
+            print('LOST CANDLE', flush=True)
+            wheels.go(0, 0)
+            continue
+
+         (err, area) = data
+
+         print(area, err, flush=True)
+
+         if area > 120:
+            break
+
+         driver.iter(err)
+    
+    wheels.stop()
+    turbine.on()
+    driver.turn(-8000, 30)
+    driver.turn(8000, 30)
+    driver.turn(-8000, 30)
+    driver.turn(8000, 30)
+    turbine.off()
+
+    return True
 
 def drive_edge():
     driver.reset()
     while True:
-        err = eyes.see(0) - eyes.see(2)
+        [left, center, right, leftdetect, rightdetect] = eyes.see()
+        print(f'{left} {center} {right} | {leftdetect} {rightdetect}', flush=True)
+
+        err = left - right
         driver.iter(err)
 
-        #if line.check_room():
-        #    kill_candle()
-        #    return True
-
-        if cannot_go(1) or can_go(0) or can_go(2):
+        if can_go(rightdetect):#line.check_room():
+            to_center()
             wheels.stop()
-            time.sleep(2)
+            time.sleep(0.5)
+            return kill_candle()
+
+        if cannot_go(center):
+            wheels.stop()
             return False
+
+        if can_go(leftdetect) or can_go(rightdetect):
+            to_center()
+            return False
+
+def to_center():
+    dists = eyes.see()
+    if not can_go(dists[3]):
+        print('ALIGN LEFT', flush=True)
+
+        driver.reset()
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+            err = eyes.see(0) - 350
+            driver.iter(err)
+    elif not can_go(dists[4]):
+        print('ALIGN RIGHT', flush=True)
+
+        driver.reset()
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+            err = 350 - eyes.see(2)
+            driver.iter(err)
+    else:
+        print('BLIND', flush=True)
+
+        driver.fwd(20000, 25000, 20)
+
+def from_center():
+    dists = eyes.see()
+    if not can_go(dists[3]):
+        print('ALIGN LEFT', flush=True)
+
+        driver.reset(max_control=10000)
+        while can_go(eyes.see(4)):
+            err = eyes.see(0) - 350
+            driver.iter(err)
+
+        driver.reset(max_control=10000)
+        while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
+            err = eyes.see(0) - 350
+            driver.iter(err)
+    elif not can_go(dists[4]):
+        print('ALIGN RIGHT', flush=True)
+
+        driver.reset(max_control=10000)
+        while can_go(eyes.see(3)):
+            err = 400 - eyes.see(2)
+            driver.iter(err)
+
+        driver.reset(max_control=10000)
+        while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
+            err = 400 - eyes.see(2)
+            driver.iter(err)
+    else:
+        print('BLIND', flush=True)
+
+        wheels.go(20000, 24000)
+
+        while can_go(eyes.see(3)) or can_go(eyes.see(4)):
+            time.sleep(0.01)
+
+        driver.reset()
+        while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
+            time.sleep(0.01)
 
 def revert(dir):
     return (180 + dir) % 360
 
-def rel(dir, newdir):
+def to_rel(dir, newdir):
     reldir = (newdir - dir) % 360
     if reldir == 270:
         reldir = -90
     return reldir
 
-def abs(dir, reldir):
+def to_abs(dir, reldir):
     return (dir + reldir) % 360
 
 def update_graph(pos, dir):
@@ -110,12 +215,27 @@ def update_graph(pos, dir):
 def next_paths(dir):
     next = []
 
-    for i in range(3):
-        if not can_go(i):
-            continue
+    left = []
+    center = []
+    right = []
+    for _ in range(7):
+        dists = eyes.see()
 
-        reldir = (i - 1) * 90
-        next.append(abs(dir, reldir))
+        left.append(dists[3])
+        center.append(dists[1])
+        right.append(dists[4])
+
+    left.sort()
+    center.sort()
+    right.sort()
+
+    dists = [left[7 // 2], center[7 // 2], right[7 // 2]]
+    print(f'{dists[0]} {dists[1]} {dists[2]}', flush=True)
+
+    for i, d in enumerate(dists):
+        if can_go(d):
+            reldir = (i - 1) * 90
+            next.append(to_abs(dir, reldir))
     
     return next
 
@@ -123,21 +243,30 @@ def find_candle(pos, dir):
     print(f'ENTER {pos} @ {dir}', flush=True)
     print(graph)
 
+    wheels.stop()
+    time.sleep(1)
     next = next_paths(dir)
+    if pos == 0:
+        next.append(180)
+
     print(f'NEXT: {next}', flush=True)
 
     for newdir in next:
         newpos = update_graph(pos, newdir)
         print(f'>=> {pos} @ {dir} -> {newpos} @ {newdir}', flush=True)
 
-        reldir = rel(dir, newdir)
+        reldir = to_rel(dir, newdir)
         print(f'* EXEC {reldir}', flush=True)
         if reldir == -90:
             turn_left()
         elif reldir == 90:
             turn_right()
+        elif reldir == 180:
+            print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', flush=True)
+            reverse()
 
-        driver.fwd(15000, 20)
+        if pos != 0:
+            from_center()
 
         if drive_edge():
             raise GoHome(pos, newdir)
@@ -146,7 +275,7 @@ def find_candle(pos, dir):
         print(f'! STUCK {newpos} @ {dir}', flush=True)
 
         targetdir = revert(newdir)
-        reldir = rel(dir, targetdir)
+        reldir = to_rel(dir, targetdir)
         dir = targetdir
 
         print(f'? EXIT {targetdir}', flush=True)
@@ -154,9 +283,12 @@ def find_candle(pos, dir):
 
         if reldir == -90:
             turn_left()
+            from_center()
         elif reldir == 90:
             turn_right()
+            from_center()
         elif reldir == 180:
+            driver.fwd(-15000, 10)
             reverse()
 
         drive_edge()
@@ -208,19 +340,64 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    while True:
-        print(eyes.see(), flush=True)
-    if 1:
-        reverse()
-        drive_edge()
-        turn_left()
-        drive_edge()
+    #wheels.stop()
+    #while True:
+    #    print(eyes.see(), flush=True)
+    #driver.turn(-15000, 20)
+    #driver.fwd(-15000, 20)
+    #drive_edge()
+    #driver.reset()
+    #while driver.encl() < config.cm_to_enc(40) or driver.encr() < config.cm_to_enc(40):
+    #    err = 300 - eyes.see(2)
+    #    driver.iter(err)
 
-    drive_edge()
-    driver.fwd(15000, 30)
-    turn_right()
-    driver.fwd(15000, 30)
-    drive_edge()
+    #drive_edge()
+    #reverse()
+    #driver.fwd(15000, 20)
+    #driver.turn(10000, 40)
+    #driver.turn(15000, 90)
+    #driver.fwd(15000, 100)
+    #driver.fwd(-15000, 70)
+    #turbine.on()
+    #time.sleep(2)
+    #turbine.off()
+    #time.sleep(1000)
+    #driver.fwd(-10000, 5)
+    #reverse()
+
+    #while True:
+    #    drive_edge()
+    #    time.sleep(0.5)
+
+    #    turn_right()
+
+    #    # GOOD!
+    #    driver.reset(kd=0.4)
+    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+    #        err = eyes.see(0) - 300
+    #        driver.iter(err)
+
+    #    drive_edge()
+    #    driver.fwd(-15000, 5)
+    #    time.sleep(0.5)
+
+    #    reverse()
+
+    #    drive_edge()
+    #    time.sleep(0.5)
+
+    #    turn_left()
+
+    #    driver.reset(kd=0.4)
+    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
+    #        err = 300 - eyes.see(2)
+    #        driver.iter(err)
+
+    #    drive_edge()
+    #    driver.fwd(-15000, 5)
+    #    time.sleep(0.5)
+
+    #    reverse()
 
     #drive_edge()
     #driver.reset(config.DRIVER_CANDLE_PARAMS)
@@ -252,10 +429,10 @@ try:
     #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
     #return_home(4, 270)
 
-    #try:
-    #    find_candle(0, 0)
-    #except GoHome as e:
-    #    return_home(e.pos, e.dir)
+    try:
+        find_candle(0, 0)
+    except GoHome as e:
+        return_home(e.pos, e.dir)
 
 except KeyboardInterrupt:
     print(flush=True)
