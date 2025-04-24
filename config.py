@@ -1,11 +1,21 @@
 import board
 
-DRIVER_WALL_PARAMS = {
+DRIVER_WALL_PARAMS_BAT_LOW = {
     'kp': 12,
     'ki': 3,
     'kaw': 0,
     'kd': 2,
     'speed': 20000,
+    'dt': 0.01,
+    'max_control': 50000
+}
+
+DRIVER_WALL_PARAMS_BAT_FULL = {
+    'kp': 12,
+    'ki': 3,
+    'kaw': 0,
+    'kd': 1,
+    'speed': 15000,
     'dt': 0.01,
     'max_control': 50000
 }
@@ -19,6 +29,8 @@ DRIVER_CANDLE_PARAMS = {
     'dt': None,
     'max_control': 5000
 }
+
+DRIVER_DEFAULT_PARAMS = DRIVER_WALL_PARAMS_BAT_FULL 
 
 EYES_XSHUTS = [
     (board.D5, 0x28),
@@ -47,7 +59,7 @@ ENCODERL_PIN2 = 9
 ENCODERR_PIN1 = 22
 ENCODERR_PIN2 = 27
 
-LINE_SENSOR = board.D25
+LINE_SENSOR = board.D18
 
 WHEEL_BASE = 16
 WHEEL_DIAM = 4.2

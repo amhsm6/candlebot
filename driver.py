@@ -13,7 +13,7 @@ class Driver:
     def deinit(self):
         print('DEINIT driver', flush=True)
 
-    def reset(self, preset=config.DRIVER_WALL_PARAMS, **kwargs):
+    def reset(self, preset=config.DRIVER_DEFAULT_PARAMS, **kwargs):
         self.integral = 0
         self.control_prev = 0
         self.limcontrol_prev = 0

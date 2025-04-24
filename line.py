@@ -1,3 +1,4 @@
+import config
 import digitalio
 
 class Line:
@@ -12,5 +13,4 @@ class Line:
         self.line.deinit()
     
     def check_room(self):
-        # FIXME
-        return self.line.value < 500
+        return not self.line.value
