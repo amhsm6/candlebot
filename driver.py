@@ -27,11 +27,13 @@ class Driver:
         self.rref = self.encoderr.getValue()
 
     def iter(self, err):
+        dt = self.params['dt'] if self.params['dt'] is not None else 1
+
         cp = err * self.params['kp']
 
-        self.integral += err * self.params['dt'] * self.params['ki'] - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
+        self.integral += err * dt * self.params['ki'] - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
 
-        cd = (err - self.err_prev) / self.params['dt'] * self.params['kd']
+        cd = (err - self.err_prev) / dt * self.params['kd']
 
         control = cp + self.integral + cd
         self.control_prev = control
@@ -39,10 +41,12 @@ class Driver:
         control = min(control, self.params['max_control'])
         control = max(control, -self.params['max_control'])
         self.limcontrol_prev = control
-
+    
         self.wheels.go(self.params['speed'] - control, self.params['speed'] + control)
 
-        time.sleep(self.params['dt'])
+        if self.params['dt'] is not None:
+            time.sleep(dt)
+
         self.err_prev = err
 
     def encl(self):
@@ -51,8 +55,21 @@ class Driver:
     def encr(self):
         return abs(self.encoderr.getValue() - self.rref)
 
-    def fwd(self, v, cm):
-        self.wheels.go(v, v)
+    def fwd(self, a, b, c=None):
+        vl = 0
+        vr = 0
+        cm = 0
+
+        if c is None:
+            vl = a
+            vr = a
+            cm = b
+        else:
+            vl = a
+            vr = b
+            cm = c
+
+        self.wheels.go(vl, vr)
 
         self.reset()
         while self.encl() < config.cm_to_enc(cm) or self.encr() < config.cm_to_enc(cm):

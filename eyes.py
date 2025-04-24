@@ -23,7 +23,7 @@ class Eyes():
         self.eyes = []
         for xshut, addr in self.xshuts:
             xshut.value = True
-            time.sleep(0.1)
+            time.sleep(0.2)
 
             print(f'TRY eyes on 0x{addr:x}...', flush=True)
             eye = VL53L0X(i2c)
@@ -38,11 +38,11 @@ class Eyes():
         print('DEINIT eyes', flush=True)
 
         try:
-            for xshut, _ in self.xshuts:
-                xshut.deinit()
-
             for eye in self.eyes:
                 eye.stop_continuous()
+
+            for xshut, _ in self.xshuts:
+                xshut.deinit()
 
         except OSError as e:
             print('FAILURE eyes', flush=True)
