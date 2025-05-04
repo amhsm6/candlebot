@@ -61,7 +61,7 @@ class Eyes():
         measurements = [[] for _ in range(len(sensors))]
 
         for _ in range(config.EYES_FILTER_WINDOW):
-            for i, measure in enumerate(map(see_eye, sensors))
+            for i, measure in enumerate(map(see_eye, sensors)):
                 measurements[i].append(measure)
 
             time.sleep(0.001)

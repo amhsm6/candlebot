@@ -11,11 +11,11 @@ DRIVER_WALL_PARAMS_BAT_LOW = {
 }
 
 DRIVER_WALL_PARAMS_BAT_FULL = {
-    'kp': 12,
-    'ki': 3,
+    'kp': 13,
+    'ki': 4,
     'kaw': 0,
-    'kd': 1,
-    'speed': 15000,
+    'kd': 4,
+    'speed': 18000,
     'dt': 0.01,
     'max_control': 50000
 }
@@ -33,35 +33,35 @@ DRIVER_CANDLE_PARAMS = {
 DRIVER_DEFAULT_PARAMS = DRIVER_WALL_PARAMS_BAT_FULL 
 
 EYES_XSHUTS = [
-    (board.D5, 0x28),
-    (board.D0, 0x25),
-    (board.D6, 0x26),
-    (board.D24, 0x30),
-    (board.D23, 0x24),
+    (board.D25, 0x28),
+    (board.D1, 0x25),
+    (board.D12, 0x26),
+    (board.D7, 0x30),
+    (board.D8, 0x24),
 ]
 
 EYES_FILTER_WINDOW = 3
 
-WHEELS_ENA = board.D26
-WHEELS_IN1 = board.D19
-WHEELS_IN2 = board.D13
-WHEELS_IN3 = board.D20
-WHEELS_IN4 = board.D16
-WHEELS_ENB = board.D21
+WHEELS_ENA = board.D0
+WHEELS_IN1 = board.D6
+WHEELS_IN2 = board.D5
+WHEELS_IN3 = board.D13
+WHEELS_IN4 = board.D19
+WHEELS_ENB = board.D26
 
-TURBINE_PIN = board.D7
+TURBINE_PIN = board.D21
 TURBINE_OFF = 3000
 TURBINE_ON = 4500
 
-ENCODERL_PIN1 = 11
-ENCODERL_PIN2 = 9
+ENCODERL_PIN1 = 24
+ENCODERL_PIN2 = 23
 
-ENCODERR_PIN1 = 22
-ENCODERR_PIN2 = 27
+ENCODERR_PIN1 = 18
+ENCODERR_PIN2 = 15
 
-LINE_SENSOR = board.D18
+LINE_SENSOR = board.D16
 
-WHEEL_BASE = 16
+WHEEL_BASE = 15
 WHEEL_DIAM = 4.2
 
 WHEEL_REV = 690

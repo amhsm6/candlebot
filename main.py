@@ -11,16 +11,18 @@ from turbine import Turbine
 from wheels import Wheels
 from encoder import Encoder
 from line import Line
+from gyro import Gyro
 
 i2c = board.I2C()
 GPIO.setmode(GPIO.BCM)
 
 camera = Camera()
 eyes = Eyes(i2c)
+gyro = Gyro()
 wheels = Wheels()
 encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
 encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
-driver = Driver(wheels, encoderl, encoderr)
+driver = Driver(wheels, encoderl, encoderr, gyro)
 turbine = Turbine()
 line = Line()
 
@@ -41,13 +43,13 @@ def cannot_go(x):
     return x < 80
 
 def turn_left():
-    driver.turn(-10000, 90)
+    driver.turn(-90)
 
 def turn_right():
-    driver.turn(10000, 90)
+    driver.turn(90)
 
 def reverse():
-    driver.turn(10000, 180)
+    driver.turn(180)
 
 def kill_candle():
     print('ROOM', flush=True)
@@ -58,7 +60,7 @@ def kill_candle():
 
     found = False
 
-    driver.turn(-10000, 90)    
+    driver.turn(90)    
     time.sleep(0.5)
     
     wheels.go(10000, -10000)
@@ -101,10 +103,10 @@ def kill_candle():
     fwd_enc = (driver.encl() + driver.encr()) // 2
     
     turbine.on()
-    driver.turn(-8000, 30)
-    driver.turn(8000, 30)
-    driver.turn(-8000, 30)
-    driver.turn(8000, 30)
+    driver.turn(30)
+    driver.turn(30)
+    driver.turn(30)
+    driver.turn(30)
     turbine.off()
 
     driver.fwd(-10000, 10)
@@ -139,41 +141,45 @@ def drive_edge():
             return to_center()
 
 def to_center():
-    [left, right] = eyes.see([3, 4])
+    driver.fwd(20000, 20)
+    #[left, right] = eyes.see([3, 4])
 
-    if not can_go(left):
-        print('ALIGN LEFT', flush=True)
+    #if not can_go(left):
+    #    print('ALIGN LEFT', flush=True)
 
-        driver.reset()
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            [left] = eyes.see([0])
+    #    driver.reset()
+    #    while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+    #        [left] = eyes.see([0])
 
-            err = left - 350
-            driver.iter(err)
+    #        err = left - 350
+    #        driver.iter(err)
 
-            if line.check_room():
-                return kill_candle()
-    elif not can_go(right):
-        print('ALIGN RIGHT', flush=True)
+    #        if line.check_room():
+    #            return kill_candle()
+    #elif not can_go(right):
+    #    print('ALIGN RIGHT', flush=True)
 
-        driver.reset()
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            [right] = eyes.see([2])
+    #    driver.reset()
+    #    while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+    #        [right] = eyes.see([2])
 
-            err = 350 - right
-            driver.iter(err)
+    #        err = 350 - right
+    #        driver.iter(err)
 
-            if line.check_room():
-                return kill_candle()
-    else:
-        print('BLIND', flush=True)
+    #        if line.check_room():
+    #            return kill_candle()
+    #else:
+    #    print('BLIND', flush=True)
 
-        driver.fwd(20000, 25000, 20)
+    #    driver.fwd(20000, 25000, 20)
 
 def from_center():
-    [left, right] = eyes.see([3, 4])
+    [left, right] = eyes.see([0, 2])
 
-    if not can_go(left):
+    if not can_go(left) and not can_go(right):
+        print('SKIP', flush=True)
+        pass
+    elif not can_go(left):
         print('ALIGN LEFT', flush=True)
 
         driver.reset(max_control=10000)
@@ -207,33 +213,10 @@ def from_center():
             driver.iter(err)
     else:
         print('BLIND', flush=True)
+        driver.fwd(20000, 15)
 
-        wheels.go(15000, 15000)
-
-        while can_go(left) or can_go(right):
-            [left, right] = eyes.see([3, 4])
-
-        wheels.stop()
-        time.sleep(1)
-
-        wheels.go(15000, 15000)
-
-        driver.reset()
-        while driver.encl() < config.cm_to_enc(5) or driver.encr() < config.cm_to_enc(5):
-            time.sleep(0.01)
-
-        wheels.stop()
-        time.sleep(1)
-
-        driver.reset(speed=10000)
-        while driver.encl() < config.cm_to_enc(10) or driver.encr() < config.cm_to_enc(10):
-            [left, right] = eyes.see([3, 4])
-
-            err = left - right
-            driver.iter(err)
-
-        wheels.stop()
-        time.sleep(1)
+    wheels.stop()
+    time.sleep(0.5)
 
 def revert(dir):
     return (180 + dir) % 360
@@ -302,8 +285,8 @@ def find_candle(pos, dir):
     wheels.stop()
     time.sleep(0.2)
     next = next_paths(dir)
-    if pos == 0:
-        next.append(180)
+    #if pos == 0:
+    #    next.append(180)
 
     print(f'NEXT: {next}', flush=True)
 
@@ -321,8 +304,7 @@ def find_candle(pos, dir):
             print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', flush=True)
             reverse()
 
-        if pos != 0:
-            from_center()
+        from_center()
 
         if drive_edge():
             raise GoHome(pos, newdir)
@@ -396,10 +378,15 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    while True:
-        print(eyes.see(), flush=True)
+    #while True:
+    #    print(eyes.see(), flush=True)
+    #driver.fwd(30000, 1000)
+    #time.sleep(1000)
     #wheels.stop()
-    #driver.turn(-15000, 20)
+    #driver.turn(180)
+    #time.sleep(1)
+    #driver.turn(-180)
+    #time.sleep(1000)
     #driver.fwd(-15000, 20)
     #drive_edge()
     #driver.reset()
@@ -503,3 +490,4 @@ turbine.deinit()
 encoderl.deinit()
 encoderr.deinit()
 line.deinit()
+gyro.deinit()
