@@ -68,7 +68,7 @@ class Driver:
         return x - self.angleref if x is not None else None
 
     def fwd(self, v, cm):
-        self.reset(kp=600, ki=300, kd=1, speed=v, max_control=20000)
+        self.reset(kp=500, ki=300, kd=10, speed=v, max_control=30000)
         while self.encl() < config.cm_to_enc(cm) or self.encr() < config.cm_to_enc(cm):
             err = self.angle()
             if err is None:
@@ -79,15 +79,14 @@ class Driver:
         self.wheels.stop()
 
     def turn(self, deg):
-        ki = 300
-        if abs(deg) >= 180:
-            ki = 100
-
-        self.reset(kp=200, ki=ki, kd=0, speed=0, max_control=40000)
+        long = abs(deg) >= 180
+        self.reset(kp=155 if long else 160, ki=29 if long else 200, kd=0, speed=0, max_control=40000)
         while True:
-            err = self.angle() - deg
-            if err is None:
+            angle = self.angle()
+            if angle is None:
                 continue
+
+            err = angle - deg
             if err < 15:
                 err *= 2
             self.iter(err)
