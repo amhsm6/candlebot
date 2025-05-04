@@ -139,23 +139,28 @@ def drive_edge():
             return to_center()
 
 def to_center():
-    dists = eyes.see()
-    if not can_go(dists[3]):
+    [left, right] = eyes.see([3, 4])
+
+    if not can_go(left):
         print('ALIGN LEFT', flush=True)
 
         driver.reset()
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            err = eyes.see(0) - 350
+            [left] = eyes.see([0])
+
+            err = left - 350
             driver.iter(err)
 
             if line.check_room():
                 return kill_candle()
-    elif not can_go(dists[4]):
+    elif not can_go(right):
         print('ALIGN RIGHT', flush=True)
 
         driver.reset()
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            err = 350 - eyes.see(2)
+            [right] = eyes.see([2])
+
+            err = 350 - right
             driver.iter(err)
 
             if line.check_room():
@@ -166,38 +171,47 @@ def to_center():
         driver.fwd(20000, 25000, 20)
 
 def from_center():
-    dists = eyes.see()
-    if not can_go(dists[3]):
+    [left, right] = eyes.see([3, 4])
+
+    if not can_go(left):
         print('ALIGN LEFT', flush=True)
 
         driver.reset(max_control=10000)
-        while can_go(eyes.see(4)):
-            err = eyes.see(0) - 350
+        while can_go(right):
+            [left, right] = eyes.see([0, 4])
+
+            err = left - 350
             driver.iter(err)
 
         driver.reset(max_control=10000)
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
-            err = eyes.see(0) - 350
+            [left] = eyes.see([0])
+
+            err = left - 350
             driver.iter(err)
-    elif not can_go(dists[4]):
+    elif not can_go(right):
         print('ALIGN RIGHT', flush=True)
 
         driver.reset(max_control=10000)
-        while can_go(eyes.see(3)):
-            err = 350 - eyes.see(2)
+        while can_go(left):
+            [left, right] = eyes.see([3, 2])
+
+            err = 350 - right
             driver.iter(err)
 
         driver.reset(max_control=10000)
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
-            err = 350 - eyes.see(2)
+            [right] = eyes.see([2])
+
+            err = 350 - right
             driver.iter(err)
     else:
         print('BLIND', flush=True)
 
         wheels.go(15000, 15000)
 
-        while can_go(eyes.see(3)) or can_go(eyes.see(4)):
-            time.sleep(0.01)
+        while can_go(left) or can_go(right):
+            [left, right] = eyes.see([3, 4])
 
         wheels.stop()
         time.sleep(1)
@@ -213,9 +227,9 @@ def from_center():
 
         driver.reset(speed=10000)
         while driver.encl() < config.cm_to_enc(10) or driver.encr() < config.cm_to_enc(10):
-            [_, _, _, left, right] = eyes.see()
-            err = left - right
+            [left, right] = eyes.see([3, 4])
 
+            err = left - right
             driver.iter(err)
 
         wheels.stop()
@@ -253,23 +267,25 @@ def update_graph(pos, dir):
     return newpos
 
 def next_paths(dir):
+    N = 7
+
     next = []
 
     left = []
     center = []
     right = []
-    for _ in range(7):
-        dists = eyes.see()
+    for _ in range(N):
+        [l, c, r] = eyes.see([3, 1, 4])
 
-        left.append(dists[3])
-        center.append(dists[1])
-        right.append(dists[4])
+        left.append(l)
+        center.append(c)
+        right.append(r)
 
     left.sort()
     center.sort()
     right.sort()
 
-    dists = [left[7 // 2], center[7 // 2], right[7 // 2]]
+    dists = [left[N // 2], center[N // 2], right[N // 2]]
     print(f'{dists[0]} {dists[1]} {dists[2]}', flush=True)
 
     for i, d in enumerate(dists):
@@ -380,6 +396,8 @@ print('====================== START ======================', flush=True)
 
 
 try:
+    while True:
+        print(eyes.see(), flush=True)
     #wheels.stop()
     #driver.turn(-15000, 20)
     #driver.fwd(-15000, 20)

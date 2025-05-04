@@ -47,33 +47,23 @@ class Eyes():
         except OSError as e:
             print('FAILURE eyes', flush=True)
 
-    def see(self, n=None):
-        def see_eye(x):
-            (n, eye) = x
+    def see(self, sensors=None):
+        if sensors is None:
+            sensors = [i for i in range(len(self.eyes))]
 
+        def see_eye(n):
             try:
-                return eye.range
+                return self.eyes[n].range
             except OSError as e:
                 print(f'FAILURE eye {n}', flush=True)
                 return None
 
-        measurements = None
-        if n is None:
-            measurements = [[] for _ in range(len(self.eyes))]
-        else:
-            measurements = [[]]
+        measurements = [[] for _ in range(len(sensors))]
 
         for _ in range(config.EYES_FILTER_WINDOW):
-            if n is None:
-                for i, measure in enumerate(map(see_eye, enumerate(self.eyes))):
-                    measurements[i].append(measure)
-            else:
-                measurements[0].append(see_eye((n, self.eyes[n])))
+            for i, measure in enumerate(map(see_eye, sensors))
+                measurements[i].append(measure)
 
             time.sleep(0.001)
         
-        res = list(map(lambda data: sorted(data)[config.EYES_FILTER_WINDOW // 2], measurements))
-        if n is None:
-            return res
-        else:
-            return res[0]
+        return list(map(lambda data: sorted(data)[config.EYES_FILTER_WINDOW // 2], measurements))
