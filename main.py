@@ -447,8 +447,8 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    #while True:
-    #    print(line.check_room(), flush=True)
+    while True:
+        print(eyes.see(), flush=True)
     #driver.turn(-180)
     #time.sleep(1000)
     #wheels.stop()
