@@ -1,4 +1,5 @@
 import board
+import math
 
 DRIVER_WALL_PARAMS_BAT_LOW = {
     'kp': 12,
@@ -67,10 +68,13 @@ WHEEL_DIAM = 4.2
 WHEEL_REV = 690
 
 def deg_to_cm(deg):
-    return (deg / 360.0) * 3.14 * WHEEL_BASE
+    return (deg / 360.0) * math.pi * WHEEL_BASE
 
 def cm_to_enc(cm):
-    return cm / (3.14 * WHEEL_DIAM) * WHEEL_REV
+    return cm / (math.pi * WHEEL_DIAM) * WHEEL_REV
+
+def enc_to_cm(enc):
+    return enc * (math.pi * WHEEL_DIAM) * WHEEL_REV
  
 def deg_to_enc(deg):
     return cm_to_enc(deg_to_cm(deg))

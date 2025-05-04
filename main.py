@@ -65,19 +65,24 @@ def kill_candle(dir):
     wheels.go(15000, -15000)
 
     driver.reset()
-    while driver.encl() < config.deg_to_enc(180) or driver.encr() < config.deg_to_enc(180):
+    angle = driver.angle()
+    while True:
         data = camera.read()
         if data is not None:
             found = True
             print('FOUND', flush=True)
             break
 
+        angle = driver.angle()
+
+        if angle is not None and angle >= 180:
+            break
+
+    wheels.stop()
+
     if not found:
         print('NO CANDLE', flush=True)
         return ((dir + 90) % 360, False)
-
-    wheels.stop()
-    turn_enc = (driver.encl() + driver.encr()) // 2
 
     time.sleep(0.5)
 
@@ -108,17 +113,10 @@ def kill_candle(dir):
     driver.turn(-30)
     turbine.off()
 
-    driver.fwd(-10000, 10)
-    
-    driver.reset()
-    wheels.go(10000, -10000)
-    while driver.encl() < config.deg_to_enc(180) - turn_enc or driver.encr() < config.deg_to_enc(180) - turn_enc:
-        time.sleep(0.001)
+    driver.fwd(-20000, config.enc_to_cm(fwd_enc))
+    driver.turn(180 - angle)
 
-    wheels.stop()
-    print(5 / 0)
-
-    return True
+    return ((dir + 90) % 360, True)
 
 def drive_edge(dir):
     driver.reset()
@@ -190,7 +188,6 @@ def from_center(dir):
 
     if not can_go(left) and not can_go(right):
         print('SKIP', flush=True)
-        pass
     elif not can_go(left):
         print('ALIGN LEFT', flush=True)
 
@@ -427,6 +424,25 @@ def return_home(pos, dir):
     path.reverse()
     print(path, flush=True)
 
+    v = pos
+    for u in path[1:]:
+        newdir = graph[v][u]
+
+        reldir = to_rel(dir, newdir)
+        print(f'* EXEC {reldir}', flush=True)
+        if reldir == -90:
+            turn_left()
+        elif reldir == 90:
+            turn_right()
+        elif reldir == 180:
+            print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', flush=True)
+            reverse()
+
+        from_center(None)
+        drive_edge(None)
+
+        v = u
+
 print('====================== START ======================', flush=True)
 
 
@@ -439,7 +455,7 @@ try:
     #driver.turn(180)
     #time.sleep(1)
     #driver.turn(-180)
-    #driver.fwd(20000, 20)
+    #driver.fwd(-20000, 200000)
     #time.sleep(1000)
     #drive_edge()
     #driver.reset()
