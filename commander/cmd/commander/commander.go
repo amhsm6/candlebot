@@ -75,25 +75,41 @@ func (s *CommServer) Run(stream grpc.BidiStreamingServer[pb.Interrupt, pb.Output
 			return
 		}
 
-		if err != nil {
-			// TODO: if context cancelled by interrupt or success of command process - do not error
-			log.Error(err)
-		}
-
 		if cmd.ProcessState == nil || !cmd.ProcessState.Exited() {
-			log.Warn("Interrupting command...")
+            if err != nil {
+                log.Error(err)
+            }
 
-			err = cmd.Process.Signal(os.Interrupt)
-			if err != nil {
-				log.Error(err)
-			}
+            for {
+                log.Info("Interrupting command...")
 
-			log.Info("Interrupted successfully")
+                err = cmd.Process.Signal(os.Interrupt)
+                if err != nil {
+                    log.Error(err)
+                }
 
-            time.Sleep(time.Second * 3)
-            stdout.Close()
+                deadline := time.After(time.Second * 3)
+
+                waitloop: for {
+                    select {
+                    case <-deadline:
+                        break waitloop
+
+                    default:
+                    }
+
+                    if cmd.ProcessState != nil {
+                        log.Info("Interrupted successfully")
+                        return
+                    }
+                }
+
+                log.Warn("Didn't work, trying again")
+            }
 		} else {
-			log.Warn("Command process has already finished")
+            if err == nil {
+                log.Warn("Can't interrupt, command process has already finished")
+            }
 		}
 	}()
 

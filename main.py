@@ -541,10 +541,10 @@ try:
     #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
     #return_home(4, 270)
 
-    try:
-        find_candle(0, 0)
-    except GoHome as e:
-        return_home(e.pos, e.dir)
+    #try:
+    #    find_candle(0, 0)
+    #except GoHome as e:
+    #    return_home(e.pos, e.dir)
 
 except KeyboardInterrupt:
     print(flush=True)
