@@ -30,9 +30,9 @@ class Camera:
             frame = np.array(frame, dtype=np.float32)
 
             im = np.reshape(frame, (24, 32))
-            im = cv.flip(im, 0)
+            im = cv.flip(im, 1)
 
-            thresh = im > 25.0
+            thresh = im > 27.5
             thresh = thresh.astype(np.uint8)
             contours, _ = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 

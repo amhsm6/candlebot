@@ -14,7 +14,7 @@ class Driver:
     def deinit(self):
         print('DEINIT driver', flush=True)
 
-    def reset(self, preset=config.DRIVER_DEFAULT_PARAMS, **kwargs):
+    def reset(self, preset=config.DRIVER_DEFAULT_PARAMS, reset_angle=True, **kwargs):
         self.integral = 0
         self.control_prev = 0
         self.limcontrol_prev = 0
@@ -32,7 +32,8 @@ class Driver:
         self.rref = self.encoderr.getValue()
 
         self.gyro.reset()
-        self.angleref = self.gyro.get_angle()
+        if reset_angle:
+            self.angleref = self.gyro.get_angle()
 
     def iter(self, err):
         dt = self.params['dt'] if self.params['dt'] is not None else 1
@@ -52,7 +53,7 @@ class Driver:
     
         self.wheels.go(self.params['speed'] - control, self.params['speed'] + control)
 
-        if self.params['dt'] is not None:
+        if self.params['dt'] is not None and 'no_wait' not in self.params:
             time.sleep(dt)
 
         self.err_prev = err

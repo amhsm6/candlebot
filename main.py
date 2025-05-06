@@ -56,15 +56,42 @@ def reverse():
 def kill_candle(dir):
     print('ROOM', flush=True)
 
-    driver.fwd(20000, 25)
-    time.sleep(1)
+    [left, right] = eyes.see([3, 4])
 
-    found = False
+    if not can_go(left) and not can_go(right):
+        print('ALIGN BOTH', flush=True)
+
+        driver.reset()
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+            [left, right] = eyes.see([3, 4])
+
+            err = left - right
+            driver.iter(err)
+    elif not can_go(left):
+        print('ALIGN LEFT', flush=True)
+
+        driver.reset(config.DRIVER_WALL_ONESIDE)
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+            [left] = eyes.see([3])
+
+            err = left - 300
+            driver.iter(err)
+    elif not can_go(right):
+        print('ALIGN RIGHT', flush=True)
+
+        driver.reset(config.DRIVER_WALL_ONESIDE)
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+            [right] = eyes.see([4])
+
+            err = 300 - right
+            driver.iter(err)
 
     driver.turn(-110)    
     time.sleep(0.5)
     
     wheels.go(12000, -12000)
+
+    found = False
 
     driver.reset()
     angle = driver.angle()
@@ -85,54 +112,72 @@ def kill_candle(dir):
 
     if not found:
         print('NO CANDLE', flush=True)
-        driver.turn(-20)
-        return ((dir + 90) % 360, False)
+        driver.turn(70)
+        return ((dir + 180) % 360, False)
 
     time.sleep(0.5)
 
-    driver.reset(config.DRIVER_CANDLE_PARAMS)
+    prev_enc = 0
+    fwd_enc = 0
+    driver.reset(config.DRIVER_CANDLE_PARAMS, reset_angle=False)
     while True:
-         data = camera.read()
-         if data is None:
-            print('LOST CANDLE', flush=True)
-            wheels.go(0, 0)
-            continue
+        angle = driver.angle()
 
-         (err, area) = data
+        if angle > 600:
+            print('NO CANDLE', flush=True)
+            driver.turn((290 - angle) % 360)
+            return ((dir + 180) % 360, False)
 
-         print(area, err, flush=True)
+        data = camera.read()
+        if data is None:
+           print('LOST CANDLE', flush=True)
 
-         if area > 100:
-            break
+           wheels.go(12000, -12000)
+           continue
 
-         driver.iter(err)
+        enc = (driver.encl() + driver.encr()) // 2 
+        fwd_enc += enc - prev_enc
+        print(enc, prev_enc, enc - prev_enc, flush=True)
+
+        (err, area) = data
+
+        print(area, err, flush=True)
+
+        if area > 240:
+           break
+
+        driver.iter(err)
+
+        prev_enc = enc
 
     wheels.stop()
-    fwd_enc = (driver.encl() + driver.encr()) // 2
     
     turbine.on()
-    driver.turn(30)
-    driver.turn(-30)
-    driver.turn(30)
-    driver.turn(-30)
+    time.sleep(5)
     turbine.off()
 
-    driver.fwd(-20000, config.enc_to_cm(fwd_enc))
-    driver.turn(180 - (angle - 20))
+    print(config.enc_to_cm(fwd_enc), angle, flush=True)
 
-    return ((dir + 90) % 360, True)
+    driver.fwd(-20000, config.enc_to_cm(fwd_enc))
+    driver.turn(290 - angle)
+
+    to_center(None)
+
+    return ((dir + 180) % 360, True)
 
 def drive_edge(dir):
-    driver.reset()
-    print(driver.params)
+    driver.reset(no_wait=True)
     while True:
-        [left, center, right, leftdetect, rightdetect] = eyes.see()
+        x = eyes.see(detect=dir is not None, line=line)
+        if x == "A":
+            return kill_candle(dir)
+
+        [left, center, right, leftdetect, rightdetect] = x
+
         print(f'{left} {center} {right} | {leftdetect} {rightdetect}', flush=True)
 
         err = left - right
         driver.iter(err)
-
-        print(dir, line.check_room())
 
         if dir is not None and line.check_room():
             return kill_candle(dir)
@@ -154,7 +199,7 @@ def to_center(dir):
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [left] = eyes.see([0])
 
-            err = left - 350
+            err = left - 300
             driver.iter(err)
     
             if dir is not None and line.check_room():
@@ -166,7 +211,7 @@ def to_center(dir):
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [right] = eyes.see([2])
 
-            err = 350 - right
+            err = 300 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
@@ -186,7 +231,7 @@ def to_center(dir):
                 return kill_candle(dir)
 
     wheels.stop()
-    time.sleep(1)
+    time.sleep(0.5)
 
     return None
 
@@ -204,7 +249,7 @@ def from_center(dir):
         while can_go(right):
             [left, right] = eyes.see([0, 4])
 
-            err = left - 350
+            err = left - 300
             driver.iter(err)
 
             if dir is not None and line.check_room():
@@ -214,7 +259,7 @@ def from_center(dir):
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
             [left] = eyes.see([0])
 
-            err = left - 350
+            err = left - 300
             driver.iter(err)
 
             if dir is not None and line.check_room():
@@ -228,7 +273,7 @@ def from_center(dir):
         while can_go(left):
             [left, right] = eyes.see([3, 2])
 
-            err = 350 - right
+            err = 300 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
@@ -238,7 +283,7 @@ def from_center(dir):
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
             [right] = eyes.see([2])
 
-            err = 350 - right
+            err = 300 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
@@ -247,7 +292,7 @@ def from_center(dir):
         print('BLIND', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
-        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             err = driver.angle()
             if err is None:
                 continue
@@ -258,7 +303,7 @@ def from_center(dir):
                 return kill_candle(dir)
 
     wheels.stop()
-    time.sleep(1)
+    time.sleep(0.5)
 
     return None
 
@@ -457,10 +502,17 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    drive_edge(None)
+    #while not button.pressed():
+    #    time.sleep(0.001)
 
-    while not button.pressed():
-        time.sleep(0.001)
+    #driver.turn(180)
+
+    #driver.reset(config.DRIVER_WALL_ONESIDE)
+    #while True:
+    #    [left] = eyes.see([0])
+
+    #    err = left - 300
+    #    driver.iter(err)
 
     #wheels.stop()
     #driver.turn(90)
@@ -469,14 +521,9 @@ try:
     #driver.fwd(-20000, 200000)
     #time.sleep(1000)
     #drive_edge()
-    #driver.reset()
-    #while driver.encl() < config.cm_to_enc(40) or driver.encr() < config.cm_to_enc(40):
-    #    err = 300 - eyes.see(2)
-    #    driver.iter(err)
 
     #drive_edge()
     #reverse()
-    #driver.fwd(15000, 20)
     #driver.turn(10000, 40)
     #driver.turn(15000, 90)
     #driver.fwd(15000, 100)

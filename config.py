@@ -22,21 +22,21 @@ DRIVER_WALL_PARAMS_BAT_FULL = {
 }
 
 DRIVER_WALL_ONESIDE = {
-    'kp': 10,
-    'ki': 4,
+    'kp': 20,
+    'ki': 10,
     'kaw': 0,
-    'kd': 1,
-    'speed': 18000,
+    'kd': 3,
+    'speed': 15000,
     'dt': 0.01,
-    'max_control': 10000
+    'max_control': 8000
 }
 
 DRIVER_CANDLE_PARAMS = {
-    'kp': 270,
-    'ki': 14,
+    'kp': 200,
+    'ki': 16,
     'kaw': 0,
-    'kd': 10,
-    'speed': 8000,
+    'kd': 11,
+    'speed': 8500,
     'dt': None,
     'max_control': 15000
 }
@@ -86,7 +86,7 @@ def cm_to_enc(cm):
     return cm / (math.pi * WHEEL_DIAM) * WHEEL_REV
 
 def enc_to_cm(enc):
-    return enc * (math.pi * WHEEL_DIAM) * WHEEL_REV
+    return enc * (math.pi * WHEEL_DIAM) / WHEEL_REV
  
 def deg_to_enc(deg):
     return cm_to_enc(deg_to_cm(deg))

@@ -47,7 +47,7 @@ class Eyes():
         except OSError as e:
             print('FAILURE eyes', flush=True)
 
-    def see(self, sensors=None):
+    def see(self, sensors=None, detect=False, line=None):
         if sensors is None:
             sensors = [i for i in range(len(self.eyes))]
 
@@ -61,6 +61,9 @@ class Eyes():
         measurements = [[] for _ in range(len(sensors))]
 
         for _ in range(config.EYES_FILTER_WINDOW):
+            if detect and line.check_room():
+                return "A"
+
             for i, measure in enumerate(map(see_eye, sensors)):
                 measurements[i].append(measure)
 
