@@ -32,7 +32,7 @@ class Gyro:
             try:
                 accErrorX += (math.atan(AccY / math.sqrt(AccX * AccX + AccZ * AccZ)) * 180 / math.pi)
                 accErrorY += (math.atan(-1 * AccX / math.sqrt(AccY * AccY + AccZ * AccZ)) * 180 / math.pi)
-            except:
+            except ZeroDivisionError:
                 pass
 
         self.acc_error_x = accErrorX / 200
@@ -71,7 +71,7 @@ class Gyro:
         try:
             accAngleX = (math.atan(AccY / math.sqrt(AccX * AccX + AccZ * AccZ)) * 180 / math.pi) - self.acc_error_x
             accAngleY = (math.atan(-1 * AccX / math.sqrt(AccY * AccY + AccZ * AccZ)) * 180 / math.pi) - self.acc_error_y
-        except:
+        except ZeroDivisionError:
             accAngleX = 0
             accAngleY = 0
 
@@ -92,5 +92,5 @@ class Gyro:
     def get_angle(self):
         try:
             return self.get_angles()[2]
-        except:
+        except OSError:
             return None

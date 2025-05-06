@@ -39,7 +39,7 @@ class Driver:
 
         cp = err * self.params['kp']
 
-        self.integral += err * dt * self.params['ki']# - (self.control_prev - self.limcontrol_prev) * self.params['kaw']
+        self.integral += err * dt * self.params['ki']
 
         cd = (err - self.err_prev) / dt * self.params['kd']
 
@@ -79,19 +79,32 @@ class Driver:
         self.wheels.stop()
 
     def turn(self, deg):
-        long = abs(deg) >= 180
-        self.reset(kp=155 if long else 160, ki=29 if long else 200, kd=0, speed=0, max_control=40000)
+        errors = [5 for _ in range(10)]
+
+        self.reset(kp=400, ki=0, kd=0, speed=0, max_control=20000)
         while True:
             angle = self.angle()
             if angle is None:
                 continue
 
             err = angle - deg
-            if err < 15:
-                err *= 2
+
+            if abs(err) < 15:
+                self.params['max_control'] = 12000
+                self.params['kp'] = 900
+
+            if abs(err) < 10:
+                self.params['max_control'] = 14000
+                self.params['kp'] = 5000
+
             self.iter(err)
 
-            if abs(err) < 5:
+            for i in range(10-1):
+                errors[i] = errors[i+1]
+
+            errors[10-1] = abs(err)
+
+            if sum(errors) < 15:
                 break
 
         self.wheels.stop()

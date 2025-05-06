@@ -12,6 +12,7 @@ from wheels import Wheels
 from encoder import Encoder
 from line import Line
 from gyro import Gyro
+from button import Button
 
 i2c = board.I2C()
 GPIO.setmode(GPIO.BCM)
@@ -23,8 +24,9 @@ wheels = Wheels()
 encoderl = Encoder(config.ENCODERL_PIN1, config.ENCODERL_PIN2)
 encoderr = Encoder(config.ENCODERR_PIN1, config.ENCODERR_PIN2)
 driver = Driver(wheels, encoderl, encoderr, gyro)
-turbine = Turbine()
 line = Line()
+button = Button()
+turbine = Turbine()
 
 graph = {}
 nextpos = 0
@@ -54,15 +56,15 @@ def reverse():
 def kill_candle(dir):
     print('ROOM', flush=True)
 
-    driver.fwd(20000, 15)
+    driver.fwd(20000, 25)
     time.sleep(1)
 
     found = False
 
-    driver.turn(-90)    
+    driver.turn(-110)    
     time.sleep(0.5)
     
-    wheels.go(15000, -15000)
+    wheels.go(12000, -12000)
 
     driver.reset()
     angle = driver.angle()
@@ -74,14 +76,16 @@ def kill_candle(dir):
             break
 
         angle = driver.angle()
+        print(angle, flush=True)
 
-        if angle is not None and angle >= 180:
+        if angle is not None and angle >= 220:
             break
 
     wheels.stop()
 
     if not found:
         print('NO CANDLE', flush=True)
+        driver.turn(-20)
         return ((dir + 90) % 360, False)
 
     time.sleep(0.5)
@@ -114,18 +118,21 @@ def kill_candle(dir):
     turbine.off()
 
     driver.fwd(-20000, config.enc_to_cm(fwd_enc))
-    driver.turn(180 - angle)
+    driver.turn(180 - (angle - 20))
 
     return ((dir + 90) % 360, True)
 
 def drive_edge(dir):
     driver.reset()
+    print(driver.params)
     while True:
         [left, center, right, leftdetect, rightdetect] = eyes.see()
         print(f'{left} {center} {right} | {leftdetect} {rightdetect}', flush=True)
 
         err = left - right
         driver.iter(err)
+
+        print(dir, line.check_room())
 
         if dir is not None and line.check_room():
             return kill_candle(dir)
@@ -143,7 +150,7 @@ def to_center(dir):
     if not can_go(left):
         print('ALIGN LEFT', flush=True)
 
-        driver.reset()
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [left] = eyes.see([0])
 
@@ -155,7 +162,7 @@ def to_center(dir):
     elif not can_go(right):
         print('ALIGN RIGHT', flush=True)
 
-        driver.reset()
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [right] = eyes.see([2])
 
@@ -193,7 +200,7 @@ def from_center(dir):
 
         right = 9999
 
-        driver.reset(max_control=10000)
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while can_go(right):
             [left, right] = eyes.see([0, 4])
 
@@ -203,7 +210,7 @@ def from_center(dir):
             if dir is not None and line.check_room():
                 return kill_candle(dir)
 
-        driver.reset(max_control=10000)
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
             [left] = eyes.see([0])
 
@@ -217,7 +224,7 @@ def from_center(dir):
 
         left = 9999
 
-        driver.reset(max_control=10000)
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while can_go(left):
             [left, right] = eyes.see([3, 2])
 
@@ -227,7 +234,7 @@ def from_center(dir):
             if dir is not None and line.check_room():
                 return kill_candle(dir)
 
-        driver.reset(max_control=10000)
+        driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
             [right] = eyes.see([2])
 
@@ -341,6 +348,8 @@ def find_candle(pos, dir):
             print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', flush=True)
             reverse()
 
+        room = None
+
         x = from_center(newdir)
         if x is not None:
             (room_dir, killed_candle) = x
@@ -348,18 +357,19 @@ def find_candle(pos, dir):
             if killed_candle:
                 raise GoHome(pos, room_dir)
 
-            return room_dir
+            room = room_dir
 
-        x = drive_edge(newdir)
-        if x is not None:
-            (room_dir, killed_candle) = x
+        if room is None:
+            x = drive_edge(newdir)
+            if x is not None:
+                (room_dir, killed_candle) = x
 
-            if killed_candle:
-                raise GoHome(pos, room_dir)
+                if killed_candle:
+                    raise GoHome(pos, room_dir)
 
-            return room_dir
+                room = room_dir
 
-        dir = find_candle(newpos, newdir)
+        dir = find_candle(newpos, newdir) if room is None else room
         print(f'! STUCK {newpos} @ {dir}', flush=True)
 
         targetdir = revert(newdir)
@@ -447,13 +457,14 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    while True:
-        print(eyes.see(), flush=True)
-    #driver.turn(-180)
-    #time.sleep(1000)
+    drive_edge(None)
+
+    while not button.pressed():
+        time.sleep(0.001)
+
     #wheels.stop()
-    #driver.turn(180)
-    #time.sleep(1)
+    #driver.turn(90)
+    #time.sleep(1000)
     #driver.turn(-180)
     #driver.fwd(-20000, 200000)
     #time.sleep(1000)
@@ -541,10 +552,10 @@ try:
     #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
     #return_home(4, 270)
 
-    #try:
-    #    find_candle(0, 0)
-    #except GoHome as e:
-    #    return_home(e.pos, e.dir)
+    try:
+        find_candle(0, 0)
+    except GoHome as e:
+        return_home(e.pos, e.dir)
 
 except KeyboardInterrupt:
     print(flush=True)

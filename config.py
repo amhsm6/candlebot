@@ -12,23 +12,33 @@ DRIVER_WALL_PARAMS_BAT_LOW = {
 }
 
 DRIVER_WALL_PARAMS_BAT_FULL = {
-    'kp': 13,
-    'ki': 4,
+    'kp': 12,
+    'ki': 8,
     'kaw': 0,
-    'kd': 4,
+    'kd': 1.4,
     'speed': 18000,
     'dt': 0.01,
     'max_control': 50000
 }
 
+DRIVER_WALL_ONESIDE = {
+    'kp': 10,
+    'ki': 4,
+    'kaw': 0,
+    'kd': 1,
+    'speed': 18000,
+    'dt': 0.01,
+    'max_control': 10000
+}
+
 DRIVER_CANDLE_PARAMS = {
-    'kp': 250,
-    'ki': 10,
+    'kp': 270,
+    'ki': 14,
     'kaw': 0,
     'kd': 10,
-    'speed': 12000,
+    'speed': 8000,
     'dt': None,
-    'max_control': 5000
+    'max_control': 15000
 }
 
 DRIVER_DEFAULT_PARAMS = DRIVER_WALL_PARAMS_BAT_FULL 
@@ -61,6 +71,8 @@ ENCODERR_PIN1 = 18
 ENCODERR_PIN2 = 15
 
 LINE_SENSOR = board.D16
+
+BUTTON_PIN = board.D11
 
 WHEEL_BASE = 15
 WHEEL_DIAM = 4.2
