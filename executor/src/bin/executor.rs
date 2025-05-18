@@ -1,6 +1,7 @@
 use std::pin::Pin;
 use async_stream::{stream, try_stream};
 use anyhow::Error;
+use futures::prelude::*;
 use futures::Stream;
 use tonic::{Request, Response, Streaming, Status};
 use tonic::transport::Server;
