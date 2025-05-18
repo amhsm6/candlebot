@@ -2,7 +2,7 @@ use std::pin::Pin;
 use async_stream::{stream, try_stream};
 use anyhow::Error;
 use futures::prelude::*;
-use futures::Stream;
+use futures::stream::BoxStream;
 use tonic::{Request, Response, Streaming, Status};
 use tonic::transport::Server;
 
@@ -14,19 +14,19 @@ struct Executor;
 
 #[tonic::async_trait]
 impl pb::executor_server::Executor for Executor {
-    type LoadStream = Pin<Box<dyn Stream<Item = Result<FileLoaded, Status>> + Send + 'static>>;
-    type RunStream = Pin<Box<dyn Stream<Item = Result<Output, Status>> + Send + 'static>>;
+    type LoadStream = BoxStream<'static, Result<FileLoaded, Status>>;
+    type RunStream = BoxStream<'static, Result<Output, Status>>;
 
     async fn load(&self, request: Request<Source>) -> Result<Response<Self::LoadStream>, Status> {
         let src = request.into_inner();
 
         println!("{src:?}");
 
-        let resp: Self::LoadStream = Box::pin(try_stream! {
+        let resp: Self::LoadStream = try_stream! {
             yield FileLoaded{ name: "a".to_string() };
             yield FileLoaded{ name: "b".to_string() };
             yield FileLoaded{ name: "c".to_string() };
-        });
+        }.boxed();
 
         Ok(resp.into())
     }
