@@ -22,10 +22,10 @@ DRIVER_WALL_PARAMS_BAT_FULL = {
 }
 
 DRIVER_WALL_ONESIDE = {
-    'kp': 20,
-    'ki': 10,
+    'kp': 24,
+    'ki': 11,
     'kaw': 0,
-    'kd': 3,
+    'kd': 3.2,
     'speed': 15000,
     'dt': 0.01,
     'max_control': 8000

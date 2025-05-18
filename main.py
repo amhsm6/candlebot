@@ -193,34 +193,34 @@ def to_center(dir):
     [left, right] = eyes.see([3, 4])
 
     if not can_go(left):
-        print('ALIGN LEFT', flush=True)
+        print('ALIGN LEFT to_center', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            [left] = eyes.see([0])
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+            [left] = eyes.see([3])
 
-            err = left - 300
+            err = left - 330
             driver.iter(err)
     
             if dir is not None and line.check_room():
                 return kill_candle(dir)
     elif not can_go(right):
-        print('ALIGN RIGHT', flush=True)
+        print('ALIGN RIGHT to_center', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            [right] = eyes.see([2])
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+            [right] = eyes.see([4])
 
-            err = 300 - right
+            err = 330 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
                 return kill_candle(dir)
     else:
-        print('BLIND', flush=True)
+        print('BLIND to_center', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
             err = driver.angle()
             if err is None:
                 continue
@@ -239,9 +239,9 @@ def from_center(dir):
     [left, right] = eyes.see([0, 2])
 
     if not can_go(left) and not can_go(right):
-        print('SKIP', flush=True)
+        print('SKIP from_center', flush=True)
     elif not can_go(left):
-        print('ALIGN LEFT', flush=True)
+        print('ALIGN LEFT from_center', flush=True)
 
         right = 9999
 
@@ -249,23 +249,23 @@ def from_center(dir):
         while can_go(right):
             [left, right] = eyes.see([0, 4])
 
-            err = left - 300
+            err = left - 330
             driver.iter(err)
 
             if dir is not None and line.check_room():
                 return kill_candle(dir)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [left] = eyes.see([0])
 
-            err = left - 300
+            err = left - 330
             driver.iter(err)
 
             if dir is not None and line.check_room():
                 return kill_candle(dir)
     elif not can_go(right):
-        print('ALIGN RIGHT', flush=True)
+        print('ALIGN RIGHT from_center', flush=True)
 
         left = 9999
 
@@ -273,23 +273,23 @@ def from_center(dir):
         while can_go(left):
             [left, right] = eyes.see([3, 2])
 
-            err = 300 - right
+            err = 330 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
                 return kill_candle(dir)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(15) or driver.encr() < config.cm_to_enc(15):
+        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
             [right] = eyes.see([2])
 
-            err = 300 - right
+            err = 330 - right
             driver.iter(err)
 
             if dir is not None and line.check_room():
                 return kill_candle(dir)
     else:
-        print('BLIND', flush=True)
+        print('BLIND from_center', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
@@ -502,8 +502,8 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    #while not button.pressed():
-    #    time.sleep(0.001)
+    while not button.pressed():
+        time.sleep(0.001)
 
     #driver.turn(180)
 

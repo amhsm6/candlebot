@@ -1,0 +1,22 @@
+[package]
+name = "executor"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "executor"
+
+[[bin]]
+name = "exec"
+
+[dependencies]
+anyhow = "1.0.98"
+async-stream = "0.3.6"
+clap = "4.5.38"
+futures = "0.3.31"
+prost = "0.13.5"
+tokio = { version = "1.45.0", features = ["rt-multi-thread", "macros", "sync"] }
+tonic = "0.13.1"
+
+[build-dependencies]
+tonic-build = "0.13.1"

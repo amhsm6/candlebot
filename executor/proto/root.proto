@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pb.root;
+
+message Source {
+  repeated File files = 1;
+}
+
+message File {
+  string name = 1;
+  bytes data = 2;
+}
+
+message FileLoaded {
+    string name = 1;
+}
+
+message Output {
+    string data = 1;
+}
+
+message Interrupt {}
+
+service Executor {
+  rpc Load(Source) returns (stream FileLoaded);
+  rpc Run(stream Interrupt) returns (stream Output);
+}
