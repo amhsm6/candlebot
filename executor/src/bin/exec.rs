@@ -4,7 +4,7 @@ use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 
 use executor::pb::root as pb;
-use pb::Output;
+use pb::{Output, Interrupt};
 use pb::executor_client::ExecutorClient;
 
 #[tokio::main]
@@ -13,8 +13,18 @@ async fn main() -> Result<()> {
 
     let (tx, rx) = mpsc::channel(15);
 
-    //tokio::spawn(async move {
-    //});
+    tokio::spawn(async move {
+        let task = async {
+            tokio::signal::ctrl_c().await?;
+            tx.send(Interrupt {}.into()).await?;
+            Result::<_>::Ok(())
+        };
+
+        match task.await {
+            Ok(_) => {}
+            Err(err) => println!("Error: {err}")
+        }
+    });
 
     client.run(ReceiverStream::new(rx)).await?.into_inner()
         .for_each(|output| {
