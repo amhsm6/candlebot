@@ -176,9 +176,6 @@ def drive_edge(dir):
 
         print(f'{left} {center} {right} | {leftdetect} {rightdetect}', flush=True)
 
-        err = left - right
-        driver.iter(err)
-
         if dir is not None and line.check_room():
             return kill_candle(dir)
 
@@ -188,6 +185,9 @@ def drive_edge(dir):
 
         if can_go(leftdetect) or can_go(rightdetect):
             return to_center(dir)
+
+        err = left - right
+        driver.iter(err)
 
 def to_center(dir):
     [left, right] = eyes.see([3, 4])
@@ -374,8 +374,6 @@ def find_candle(pos, dir):
     wheels.stop()
     time.sleep(0.2)
     next = next_paths(dir)
-    #if pos == 0:
-    #    next.append(180)
 
     print(f'NEXT: {next}', flush=True)
 

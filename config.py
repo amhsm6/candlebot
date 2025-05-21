@@ -22,8 +22,8 @@ DRIVER_WALL_PARAMS_BAT_FULL = {
 }
 
 DRIVER_WALL_ONESIDE = {
-    'kp': 24,
-    'ki': 11,
+    'kp': 30,
+    'ki': 12,
     'kaw': 0,
     'kd': 3.2,
     'speed': 15000,

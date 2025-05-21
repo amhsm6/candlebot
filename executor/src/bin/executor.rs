@@ -3,7 +3,7 @@ use async_stream::try_stream;
 use anyhow::Error;
 use futures::prelude::*;
 use futures::stream::BoxStream;
-use tokio::fs;
+use tokio::{fs, select};
 use tokio::sync::mpsc;
 use tokio::process::Command;
 use tokio_util::io::ReaderStream;
@@ -49,6 +49,8 @@ impl pb::executor_server::Executor for Executor {
     async fn run(&self, request: Request<Streaming<Interrupt>>) -> Result<Response<Self::RunStream>, Status> {
         let mut interrupt_s = request.into_inner();
 
+        println!("Execute: Run");
+
         let mut child = Command::new("python3")
             .arg("main.py")
             .stdout(Stdio::piped())
@@ -59,56 +61,67 @@ impl pb::executor_server::Executor for Executor {
         let stdout_s = ReaderStream::new(child.stdout.take().ok_or(Status::unknown("Process does not have stdout"))?);
         let stderr_s = ReaderStream::new(child.stderr.take().ok_or(Status::unknown("Process does not have stderr"))?);
 
+        let (cancel, mut context) = mpsc::channel(1);
+
         let (tx, rx) = mpsc::channel(15);
 
-        let mut tx2 = tx.clone();
+        let tx2 = tx.clone();
         tokio::spawn(async move {
-            match interrupt_s.next().await? {
-                Ok(_) => {}
-                Err(err) => {
-                    let err = Status::from_error(Box::new(err));
-                    tx2.send(Err(err)).await
-                        .unwrap_or_else(|_| println!("Warn: Process has already finished"));
+            let tx = tx2;
 
-                    return None;
+            let task = async {
+                match interrupt_s.next().await? {
+                    Ok(_) => {}
+                    Err(status) => {
+                        eprintln!("Error: {status}");
+                        return None;
+                    }
                 }
-            }
 
-            println!("Info: Interrupting...");
+                println!("Info: Interrupting...");
 
-            match signal::kill(Pid::from_raw(pid as i32), Signal::SIGINT) {
-                Ok(_) => {}
-                Err(err) => {
-                    let err = Status::from_error(Box::new(err));
-                    tx2.send(Err(err)).await
-                        .unwrap_or_else(|_| println!("Warn: Process has already finished"));
+                match signal::kill(Pid::from_raw(pid as i32), Signal::SIGINT) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        let err = Status::from_error(Box::new(err));
+                        tx.send(Err(err)).await
+                            .unwrap_or_else(|_| println!("Warn: Process has already finished"));
 
-                    return None;
+                        return None;
+                    }
                 }
-            }
 
-            let status = match child.wait().await {
-                Ok(status) => status,
-                Err(err) => {
-                    tx2.send(Err(err.into())).await
-                        .unwrap_or_else(|_| println!("Warn: Process has already finished"));
+                println!("Info: Interrupted successfully");
 
-                    return None;
+                let status = match child.wait().await {
+                    Ok(status) => status,
+                    Err(err) => {
+                        eprintln!("Error: {err}");
+
+                        tx.send(Err(err.into())).await
+                            .unwrap_or_else(|_| println!("Warn: Process has already finished"));
+
+                        return None;
+                    }
+                };
+
+                println!("Info: Process exited with status {status}");
+
+                match tx.send(Ok(Output { data: format!("Process exited with status {status}") })).await {
+                    Ok(_) => {}
+                    Err(_) => {
+                        println!("Warn: Process has already finished");
+                        return None;
+                    }
                 }
+
+                Some(())
             };
 
-            println!("Info: Interrupted successfully...");
-
-            println!("Info: Process exited with status {status}");
-            match tx2.send(Ok(Output { data: format!("Process exited with status {status}") })).await {
-                Ok(_) => {}
-                Err(err) => {
-                    println!("Warn: Process has already finished");
-                    return None;
-                }
+            select! {
+                _ = task => {}
+                _ = context.recv() => {}
             }
-
-            Some(())
         });
 
         tokio::spawn(async move {
@@ -123,6 +136,10 @@ impl pb::executor_server::Executor for Executor {
                 })
                 .map(Ok)
                 .forward(PollSender::new(tx)).await.unwrap();
+
+            cancel.send(()).await.unwrap();
+
+            println!("Done: Run");
         });
 
         Ok(ReceiverStream::new(rx).into())
