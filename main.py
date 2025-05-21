@@ -59,7 +59,7 @@ def kill_candle(dir):
     [left, right] = eyes.see([3, 4])
 
     if not can_go(left) and not can_go(right):
-        print('ALIGN BOTH', flush=True)
+        print('ALIGN BOTH room', flush=True)
 
         driver.reset()
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
@@ -68,7 +68,7 @@ def kill_candle(dir):
             err = left - right
             driver.iter(err)
     elif not can_go(left):
-        print('ALIGN LEFT', flush=True)
+        print('ALIGN LEFT room', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
@@ -77,7 +77,7 @@ def kill_candle(dir):
             err = left - 300
             driver.iter(err)
     elif not can_go(right):
-        print('ALIGN RIGHT', flush=True)
+        print('ALIGN RIGHT room', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
         while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
@@ -86,7 +86,7 @@ def kill_candle(dir):
             err = 300 - right
             driver.iter(err)
 
-    driver.turn(-110)    
+    driver.turn(-110)
     time.sleep(0.5)
     
     wheels.go(12000, -12000)
@@ -292,7 +292,7 @@ def from_center(dir):
         print('BLIND from_center', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
             err = driver.angle()
             if err is None:
                 continue
@@ -502,100 +502,6 @@ print('====================== START ======================', flush=True)
 try:
     while not button.pressed():
         time.sleep(0.001)
-
-    #driver.turn(180)
-
-    #driver.reset(config.DRIVER_WALL_ONESIDE)
-    #while True:
-    #    [left] = eyes.see([0])
-
-    #    err = left - 300
-    #    driver.iter(err)
-
-    #wheels.stop()
-    #driver.turn(90)
-    #time.sleep(1000)
-    #driver.turn(-180)
-    #driver.fwd(-20000, 200000)
-    #time.sleep(1000)
-    #drive_edge()
-
-    #drive_edge()
-    #reverse()
-    #driver.turn(10000, 40)
-    #driver.turn(15000, 90)
-    #driver.fwd(15000, 100)
-    #driver.fwd(-15000, 70)
-    #turbine.on()
-    #time.sleep(2)
-    #turbine.off()
-    #time.sleep(1000)
-    #driver.fwd(-10000, 5)
-    #reverse()
-
-    #while True:
-    #    drive_edge()
-    #    time.sleep(0.5)
-
-    #    turn_right()
-
-    #    # GOOD!
-    #    driver.reset(kd=0.4)
-    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
-    #        err = eyes.see(0) - 300
-    #        driver.iter(err)
-
-    #    drive_edge()
-    #    driver.fwd(-15000, 5)
-    #    time.sleep(0.5)
-
-    #    reverse()
-
-    #    drive_edge()
-    #    time.sleep(0.5)
-
-    #    turn_left()
-
-    #    driver.reset(kd=0.4)
-    #    while driver.encl() < config.cm_to_enc(35) or driver.encr() < config.cm_to_enc(35):
-    #        err = 300 - eyes.see(2)
-    #        driver.iter(err)
-
-    #    drive_edge()
-    #    driver.fwd(-15000, 5)
-    #    time.sleep(0.5)
-
-    #    reverse()
-
-    #drive_edge()
-    #driver.reset(config.DRIVER_CANDLE_PARAMS)
-    #while True:
-    #    err = camera.err()
-    #    if err is None:
-    #        err = 0
-
-    #    driver.iter(err)
-
-    #    dist = camera.dist()
-    #    print(dist, flush=True)
-    #    if dist is not None and dist > 30:
-    #        print(5 / 0)
-    #        break
-            #wheels.stop()
-            #turbine.on()
-            #time.sleep(1)
-            #turbine.off()
-
-    #wheels.go(20000, 20000)
-    #enc = 0
-    #while enc < 3000:
-    #    enc = (encoderl.getValue() + encoderr.getValue()) // 2
-    #    print(enc)
-
-    #wheels.stop()
-
-    #graph = {0: {1: 270}, 1: {0: 90, 2: 180}, 2: {1: 0, 3: 270}, 3: {2: 90, 4: 270}, 4: {3: 90}} 
-    #return_home(4, 270)
 
     try:
         find_candle(0, 0)
