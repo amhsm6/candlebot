@@ -36,7 +36,7 @@ DRIVER_CANDLE_PARAMS = {
     'ki': 16,
     'kaw': 0,
     'kd': 11,
-    'speed': 8500,
+    'speed': 10000,
     'dt': None,
     'max_control': 15000
 }

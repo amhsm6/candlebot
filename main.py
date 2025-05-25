@@ -58,16 +58,7 @@ def kill_candle(dir):
 
     [left, right] = eyes.see([3, 4])
 
-    if not can_go(left) and not can_go(right):
-        print('ALIGN BOTH room', flush=True)
-
-        driver.reset()
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
-            [left, right] = eyes.see([3, 4])
-
-            err = left - right
-            driver.iter(err)
-    elif not can_go(left):
+    if not can_go(left):
         print('ALIGN LEFT room', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
@@ -85,11 +76,14 @@ def kill_candle(dir):
 
             err = 300 - right
             driver.iter(err)
+    else:
+        print('ALIGN RIGHT room', flush=True)
+        driver.fwd(20000, 20)
 
     driver.turn(-110)
     time.sleep(0.5)
     
-    wheels.go(12000, -12000)
+    wheels.go(15000, -15000)
 
     found = False
 
@@ -113,6 +107,7 @@ def kill_candle(dir):
     if not found:
         print('NO CANDLE', flush=True)
         driver.turn(70)
+        driver.fwd(20000, 10)
         return ((dir + 180) % 360, False)
 
     time.sleep(0.5)
@@ -159,7 +154,7 @@ def kill_candle(dir):
     print(config.enc_to_cm(fwd_enc), angle, flush=True)
 
     driver.fwd(-20000, config.enc_to_cm(fwd_enc))
-    driver.turn(290 - angle)
+    driver.turn(180)
 
     to_center(None)
 
@@ -500,8 +495,8 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    while not button.pressed():
-        time.sleep(0.001)
+    #while not button.pressed():
+    #    time.sleep(0.001)
 
     try:
         find_candle(0, 0)
