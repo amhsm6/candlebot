@@ -36,8 +36,8 @@ class Wheels():
         dirl = vl / abs(vl) if vl != 0 else 0
         dirr = vr / abs(vr) if vr != 0 else 0
 
-        self.in1.value = dirl >= 0
-        self.in2.value = dirl < 0
+        self.in1.value = dirl <= 0
+        self.in2.value = dirl > 0
 
         self.in3.value = dirr >= 0
         self.in4.value = dirr < 0

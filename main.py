@@ -39,10 +39,10 @@ class GoHome(Exception):
         self.dir = dir
 
 def can_go(x):
-    return x > 700
+    return x > 600
 
 def cannot_go(x):
-    return x < 100
+    return x < 150
 
 def turn_left():
     driver.turn(-90)
@@ -179,6 +179,8 @@ def drive_edge(dir):
             return None
 
         if can_go(leftdetect) or can_go(rightdetect):
+            wheels.go(18000, 18000)
+            time.sleep(0.1)
             return to_center(dir)
 
         err = left - right
@@ -191,7 +193,7 @@ def to_center(dir):
         print('ALIGN LEFT to_center', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+        while driver.encl() < config.cm_to_enc(25) or driver.encr() < config.cm_to_enc(25):
             [left] = eyes.see([3])
 
             err = left - 330
@@ -203,7 +205,7 @@ def to_center(dir):
         print('ALIGN RIGHT to_center', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+        while driver.encl() < config.cm_to_enc(25) or driver.encr() < config.cm_to_enc(25):
             [right] = eyes.see([4])
 
             err = 330 - right
@@ -215,7 +217,7 @@ def to_center(dir):
         print('BLIND to_center', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
-        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+        while driver.encl() < config.cm_to_enc(25) or driver.encr() < config.cm_to_enc(25):
             err = driver.angle()
             if err is None:
                 continue
@@ -251,7 +253,7 @@ def from_center(dir):
                 return kill_candle(dir)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(10) or driver.encr() < config.cm_to_enc(10):
             [left] = eyes.see([0])
 
             err = left - 330
@@ -275,7 +277,7 @@ def from_center(dir):
                 return kill_candle(dir)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(10) or driver.encr() < config.cm_to_enc(10):
             [right] = eyes.see([2])
 
             err = 330 - right
@@ -287,7 +289,7 @@ def from_center(dir):
         print('BLIND from_center', flush=True)
 
         driver.reset(kp=500, ki=300, kd=10, speed=20000, max_control=30000)
-        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+        while driver.encl() < config.cm_to_enc(25) or driver.encr() < config.cm_to_enc(25):
             err = driver.angle()
             if err is None:
                 continue
@@ -424,7 +426,7 @@ def find_candle(pos, dir):
             turn_right()
             from_center(None)
         elif reldir == 180:
-            driver.fwd(-15000, 10)
+            driver.fwd(-15000, 5)
             reverse()
 
         drive_edge(None)
@@ -495,12 +497,6 @@ print('====================== START ======================', flush=True)
 
 
 try:
-    time.sleep(3)
-    turbine.on()
-    time.sleep(2)
-    turbine.off()
-    time.sleep(1000)
-
     #while not button.pressed():
     #    time.sleep(0.001)
 

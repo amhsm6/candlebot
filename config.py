@@ -12,10 +12,10 @@ DRIVER_WALL_PARAMS_BAT_LOW = {
 }
 
 DRIVER_WALL_PARAMS_BAT_FULL = {
-    'kp': 12,
-    'ki': 8,
+    'kp': 18,
+    'ki': 10,
     'kaw': 0,
-    'kd': 1.4,
+    'kd': 1.9,
     'speed': 18000,
     'dt': 0.01,
     'max_control': 50000
