@@ -47,8 +47,8 @@ EYES_XSHUTS = [
     (board.D25, 0x28),
     (board.D1, 0x25),
     (board.D12, 0x26),
-    (board.D7, 0x30),
-    (board.D8, 0x24),
+    (board.D8, 0x30),
+    (board.D7, 0x24),
 ]
 
 EYES_FILTER_WINDOW = 3

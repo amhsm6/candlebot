@@ -495,6 +495,12 @@ print('====================== START ======================', flush=True)
 
 
 try:
+    time.sleep(3)
+    turbine.on()
+    time.sleep(2)
+    turbine.off()
+    time.sleep(1000)
+
     #while not button.pressed():
     #    time.sleep(0.001)
 
