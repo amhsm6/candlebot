@@ -56,13 +56,25 @@ def reverse():
 def kill_candle(dir):
     print('ROOM', flush=True)
 
+    wheels.stop()
+    time.sleep(0.1)
+
     [left, right] = eyes.see([3, 4])
 
-    if not can_go(left):
+    if not can_go(left) and not can_go(right):
+        print('ALIGN BOTH room', flush=True)
+
+        driver.reset(config.DRIVER_WALL_ONESIDE)
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
+            [left, right] = eyes.see([3, 4])
+
+            err = left - right
+            driver.iter(err)
+    elif not can_go(left):
         print('ALIGN LEFT room', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
             [left] = eyes.see([3])
 
             err = left - 300
@@ -71,19 +83,19 @@ def kill_candle(dir):
         print('ALIGN RIGHT room', flush=True)
 
         driver.reset(config.DRIVER_WALL_ONESIDE)
-        while driver.encl() < config.cm_to_enc(20) or driver.encr() < config.cm_to_enc(20):
+        while driver.encl() < config.cm_to_enc(30) or driver.encr() < config.cm_to_enc(30):
             [right] = eyes.see([4])
 
             err = 300 - right
             driver.iter(err)
     else:
-        print('ALIGN RIGHT room', flush=True)
+        print('ALIGN BLIND room', flush=True)
         driver.fwd(20000, 20)
 
     driver.turn(-110)
     time.sleep(0.5)
     
-    wheels.go(15000, -15000)
+    wheels.go(13000, -13000)
 
     found = False
 
@@ -106,7 +118,7 @@ def kill_candle(dir):
 
     if not found:
         print('NO CANDLE', flush=True)
-        driver.turn(70)
+        driver.turn(290 - angle)
         driver.fwd(20000, 10)
         return ((dir + 180) % 360, False)
 
@@ -138,7 +150,7 @@ def kill_candle(dir):
 
         print(area, err, flush=True)
 
-        if area > 240:
+        if area > 175:
            break
 
         driver.iter(err)
@@ -148,14 +160,15 @@ def kill_candle(dir):
     wheels.stop()
     
     turbine.on()
-    time.sleep(5)
+    time.sleep(3)
     turbine.off()
 
-    print(config.enc_to_cm(fwd_enc), angle, flush=True)
+    print(config.enc_to_cm(fwd_enc) - 10, angle, flush=True)
 
-    driver.fwd(-20000, config.enc_to_cm(fwd_enc))
-    driver.turn(180)
+    driver.fwd(-20000, config.enc_to_cm(fwd_enc) - 10)
+    driver.turn(290 - angle)
 
+    to_center(None)
     to_center(None)
 
     return ((dir + 180) % 360, True)

@@ -33,9 +33,9 @@ DRIVER_WALL_ONESIDE = {
 
 DRIVER_CANDLE_PARAMS = {
     'kp': 200,
-    'ki': 16,
+    'ki': 10,
     'kaw': 0,
-    'kd': 11,
+    'kd': 7,
     'speed': 10000,
     'dt': None,
     'max_control': 15000
